@@ -20,7 +20,7 @@ export default class Menu extends Phaser.Scene {
       .setOrigin(0.5);
 
     button.on("pointerdown", () => {
-      this.scene.start("CoffeeBar");
+      this.scene.start("Customer");
     });
 
   }
