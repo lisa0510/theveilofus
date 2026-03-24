@@ -5,6 +5,7 @@ import Menu from "./scenes/menu.js";
 import CoffeeBar from "./scenes/coffebar.js";
 import Customer from "./scenes/customerdialogue.js";
 
+
 const config = {
   type: Phaser.AUTO,
   parent: "app",

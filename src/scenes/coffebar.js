@@ -55,17 +55,9 @@ export default class CoffeeBar extends Phaser.Scene {
     button.on("pointerdown", () => {
       this.scene.start("Menu");
     });
-
-    const coffeedrag = this.add.image(width * 0.2 - 120, height * 0.2, "coffee1");
-    coffeedrag.setScale(0.3);
-
-    coffeedrag.setInteractive();
-    this.input.setDraggable(coffeedrag);
-
-    this.input.on("drag", (pointer, gameObject, dragX, dragY) => {
-      gameObject.x = dragX;
-      gameObject.y = dragY;
-    });
+  
+    
+    
 
   }
 }

@@ -5,57 +5,81 @@ export default class Customer extends Phaser.Scene {
     super("Customer");
   }
 
+  init(data) {
+    this.customerData = data.customer;
+  }
+
   preload() {
-    this.load.image("coffee1", "./assets/coffe/coffe1.jpg");
-    this.load.image("coffee2", "./assets/coffe/coffe2.jpg");
+    this.load.image("shop", "/assets/customer/shop.jpg");
+    this.load.image("jinx", "/assets/customer/jinx.png");
+    this.load.image("lukas", "/assets/customer/lukas.png");
+    this.load.image("laura", "/assets/customer/laura.png");
   }
 
   create() {
-
     const { centerX, centerY } = this.cameras.main;
-    const width = this.scale.width
-    const height = this.scale.height
+    const width = this.scale.width;
+    const height = this.scale.height;
 
+    // Hintergrund
+    const bg = this.add.image(centerX, centerY, "shop");
+    bg.setDisplaySize(width, height);
 
-    this.add.text(centerX, 200, "Customer Dialogue", {
-      fontSize: "40px"
+    // Customer Bild
+    const customer = this.add.image(
+      centerX,
+      centerY - height * 0.08,
+      this.customerData.image
+    );
+    customer.setScale(0.3);
+
+    // Dialogbox
+    const dialogueBoxY = centerY + height * 0.22;
+
+    const dialogueBox = this.add.rectangle(
+      centerX,
+      dialogueBoxY,
+      width * 0.5,
+      height * 0.18,
+      0xffffff,
+      0.9
+    );
+    dialogueBox.setStrokeStyle(2, 0x000000);
+
+    // Name
+    this.add.text(centerX, dialogueBoxY - 35, this.customerData.name, {
+      fontSize: "28px",
+      color: "#000000",
+      fontStyle: "bold",
+      margintop: "30px"
     }).setOrigin(0.5);
 
+    // Dialogue
+    this.add.text(centerX, dialogueBoxY, this.customerData.dialogue, {
+      fontSize: "24px",
+      color: "#222222",
+      align: "center",
+      wordWrap: { width: width * 0.42 }
+    }).setOrigin(0.5);
 
-    const coffee = this.add.image(width * 0.8, height * 0.2, "coffee1");
-    coffee.setScale(0.3);
-    coffee.setInteractive();
-
-    let state = 1;
-
-
-    coffee.on("pointerdown", () => {
-
-      if (state === 1) {
-        coffee.setTexture("coffee2");
-        state = 2;
-      } else {
-        coffee.setTexture("coffee1");
-        state = 1;
-      }
-
-    });
-
-    const button = this.add.rectangle(centerX, centerY, 250, 100, 0xffffff);
+    // Button zu CoffeeBar
+    const button = this.add.rectangle(width * 0.95, height * 0.55, 100, 100, 0xffffff);
     button.setInteractive({ useHandCursor: true });
 
-    const text = this.add
-      .text(centerX, centerY, "CoffeeBar", {
-        fontSize: "30px",
-        color: "#000"
-      })
-      .setOrigin(0.5);
+    this.add.text(width * 0.95, height * 0.55, "CoffeeBar", {
+      fontSize: "15px",
+      color: "#000"
+    }).setOrigin(0.5);
 
     button.on("pointerdown", () => {
-      this.scene.start("CoffeeBar");
+      this.scene.start("CoffeeBar", {
+        customer: this.customerData,
+        order: this.customerData.order
+      });
     });
 
-
-    
+    button.on("pointerover", () => {
+      button.setFillStyle(0x5a3e36);
+    });
   }
 }
