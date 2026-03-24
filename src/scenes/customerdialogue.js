@@ -1,20 +1,21 @@
 import Phaser from "phaser";
+import datacustomers from "./datacustomers.js";
 
-export default class Customer extends Phaser.Scene {
+export default class CustomerDialogue extends Phaser.Scene {
   constructor() {
     super("Customer");
   }
 
   init(data) {
-    this.customerData = data.customer;
+    this.customerIndex = data.customerIndex ?? 0;
     this.served = data.served || false;
-    this.reaction = data.reaction || null;
+    this.customerData = datacustomers[this.customerIndex];
   }
 
   preload() {
     this.load.image("shop", "/assets/customer/shop.jpg");
     this.load.image("jinx", "/assets/customer/jinx.png");
-    this.load.image("lukas", "/assets/customer/lukas.png");
+    this.load.image("lukas", "/assets/customer/lukas.jpg");
     this.load.image("laura", "/assets/customer/laura.png");
   }
 
@@ -23,75 +24,111 @@ export default class Customer extends Phaser.Scene {
     const width = this.scale.width;
     const height = this.scale.height;
 
+    // Background
     const bg = this.add.image(centerX, centerY, "shop");
     bg.setDisplaySize(width, height);
 
-    const customer = this.add.image(
+    // Customer image
+    const customerImage = this.add.image(
       centerX,
       centerY - height * 0.08,
       this.customerData.image
     );
-    customer.setScale(0.3);
+    customerImage.setScale(0.3);
 
-    const dialogueBoxY = centerY + height * 0.22;
-
-    const dialogueBox = this.add.rectangle(
-      centerX,
-      dialogueBoxY,
-      width * 0.5,
-      height * 0.18,
-      0xffffff,
-      0.9
-    );
-    dialogueBox.setStrokeStyle(2, 0x000000);
-
+    // Dialogue content
     let dialogueText = this.customerData.dialogue;
     let orderText = `Order: ${this.customerData.order}`;
+    let buttonLabel = "CoffeeBar";
 
     if (this.served) {
-      dialogueText = this.reaction;
+      dialogueText = this.customerData.reaction || "Thanks for the coffee.";
       orderText = "";
+      buttonLabel = "Continue";
     }
 
-    this.add.text(centerX, dialogueBoxY - 35, this.customerData.name, {
+    // Dialogue box position
+    const boxY = centerY + height * 0.23;
+    const boxWidth = width * 0.52;
+    const boxHeight = height * 0.2;
+    const padding = 30;
+
+    // Main dialogue box
+    const box = this.add.rectangle(
+      centerX,
+      boxY,
+      boxWidth,
+      boxHeight,
+      0xf8f1e7,
+      0.96
+    );
+    box.setStrokeStyle(3, 0x3b2a24);
+
+    // Name
+    this.add.text(centerX, boxY - boxHeight * 0.28, this.customerData.name, {
       fontSize: "28px",
-      color: "#000000",
+      color: "#3b2a24",
       fontStyle: "bold"
     }).setOrigin(0.5);
 
-    this.add.text(centerX, dialogueBoxY, dialogueText, {
+    // Dialogue
+    this.add.text(centerX, boxY - 5, dialogueText, {
       fontSize: "24px",
       color: "#222222",
       align: "center",
-      wordWrap: { width: width * 0.42 }
+      wordWrap: { width: boxWidth - padding * 2 }
     }).setOrigin(0.5);
 
-    if (orderText !== "") {
-      this.add.text(centerX, dialogueBoxY + 40, orderText, {
+    // Order text only before coffee is served
+    if (!this.served) {
+      this.add.text(centerX, boxY + boxHeight * 0.28, orderText, {
         fontSize: "22px",
-        color: "#5a3e36"
+        color: "#6b4d3a"
       }).setOrigin(0.5);
     }
 
-    const buttonLabel = this.served ? "Continue" : "CoffeeBar";
-
-    const button = this.add.rectangle(width * 0.85, height * 0.85, 200, 100, 0xffffff);
+    // Button
+    const buttonX = width * 0.9;
+    const buttonY = height * 0.80;
+    const button = this.add.rectangle(
+      buttonX,
+      buttonY,
+      200,
+      100,
+      0xffffff,
+      1
+    );
+    button.setStrokeStyle(2, 0x3b2a24);
     button.setInteractive({ useHandCursor: true });
 
-    this.add.text(width * 0.85, height * 0.85, buttonLabel, {
+    const buttonText = this.add.text(buttonX, buttonY, buttonLabel, {
       fontSize: "30px",
-      color: "#000"
+      color: "#000000"
     }).setOrigin(0.5);
 
+    button.on("pointerover", () => {
+      button.setFillStyle(0xeadfd1);
+    });
+
+    button.on("pointerout", () => {
+      button.setFillStyle(0xffffff);
+    });
+
     button.on("pointerdown", () => {
-      if (this.served) {
-        // later: go to machine dialogue / next scene
-        console.log("Go to next scene");
-      } else {
+      if (!this.served) {
         this.scene.start("CoffeeBar", {
-          customer: this.customerData,
-          order: this.customerData.order
+          customerIndex: this.customerIndex
         });
+      } else {
+        const nextIndex = this.customerIndex + 1;
+
+        if (nextIndex < datacustomers.length) {
+          this.scene.start("Customer", {
+            customerIndex: nextIndex
+          });
+        } else {
+          this.scene.start("Menu");
+        }
       }
     });
   }

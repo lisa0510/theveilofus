@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import datacustomers from "./datacustomers.js";
 
 export default class CoffeeBar extends Phaser.Scene {
   constructor() {
@@ -6,12 +7,13 @@ export default class CoffeeBar extends Phaser.Scene {
   }
 
   init(data) {
-    this.order = data.order;
-    this.customer = data.customer;
+    this.customerIndex = data.customerIndex ?? 0;
+    this.customerData = datacustomers[this.customerIndex];
+    this.order = this.customerData.order;
   }
 
   preload() {
-    this.load.image("coffeeReady", "./assets/coffe/blackcoffe.png");
+    this.load.image("coffeeReady", "/assets/coffe/blackcoffe.png");
   }
 
   create() {
@@ -39,20 +41,19 @@ export default class CoffeeBar extends Phaser.Scene {
       color: "#3b2a24"
     }).setOrigin(0.5);
 
-    // Serve zone / tray
-    this.serveZone = this.add.rectangle(width * 0.8, height * 0.75, 200, 80, 0xffffff, 0.3);
+    this.serveZone = this.add.rectangle(width * 0.8, height * 0.75, 180, 120, 0xffffff, 0.3);
     this.serveZone.setStrokeStyle(2, 0x000000);
 
-    this.add.text(width * 0.8, height * 0.75, "Serve here", {
-      fontSize: "20px",
+    this.add.text(width * 0.8, height * 0.75, "Serve Here", {
+      fontSize: "22px",
       color: "#000000"
     }).setOrigin(0.5);
 
-    // Hidden coffee image
-    this.coffee = this.add.image(width * 0.5, height * 0.6, "coffeeReady");
+    this.coffee = this.add.image(width * 0.5, height * 0.65, "coffeeReady");
     this.coffee.setScale(0.15);
     this.coffee.setVisible(false);
     this.coffee.setInteractive();
+
     this.input.setDraggable(this.coffee);
 
     this.input.on("drag", (pointer, gameObject, dragX, dragY) => {
@@ -79,16 +80,14 @@ export default class CoffeeBar extends Phaser.Scene {
 
           this.time.delayedCall(800, () => {
             this.scene.start("Customer", {
-            customer: this.customer,
-            served: true,
-            reaction: this.customer.reaction,
+              customerIndex: this.customerIndex,
+              served: true
             });
           });
         }
       }
     });
 
-    // Make coffee button
     this.makeButton = this.add.rectangle(centerX, height * 0.85, 280, 100, 0x8b668b);
     this.makeButton.setInteractive({ useHandCursor: true });
 
@@ -102,6 +101,14 @@ export default class CoffeeBar extends Phaser.Scene {
         this.makeCoffee();
       }
     });
+
+    this.makeButton.on("pointerover", () => {
+      this.makeButton.setFillStyle(0xa57aa5);
+    });
+
+    this.makeButton.on("pointerout", () => {
+      this.makeButton.setFillStyle(0x8b668b);
+    });
   }
 
   makeCoffee() {
@@ -111,6 +118,7 @@ export default class CoffeeBar extends Phaser.Scene {
       this.isCoffeeReady = true;
       this.coffee.setVisible(true);
       this.statusText.setText("Drag the coffee to the tray.");
+      this.buttonText.setText("Coffee Ready");
     });
   }
 }
