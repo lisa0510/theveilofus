@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import datacustomers from "./datacustomers.js";
+import datacustomers from "../datacustomers.js";
 
 export default class Menu extends Phaser.Scene {
   constructor() {

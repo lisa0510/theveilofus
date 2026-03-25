@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import datacustomers from "./datacustomers.js";
+import datacustomers from "../datacustomers.js";
 
 export default class CustomerDialogue extends Phaser.Scene {
   constructor() {
@@ -14,9 +14,10 @@ export default class CustomerDialogue extends Phaser.Scene {
 
   preload() {
     this.load.image("shop", "/assets/customer/shop.jpg");
-    this.load.image("jinx", "/assets/customer/jinx.png");
-    this.load.image("lukas", "/assets/customer/lukas.jpg");
-    this.load.image("laura", "/assets/customer/laura.png");
+    this.load.image("lukarde", "/assets/customer/lukarde.jpg");
+    this.load.image("laura", "/assets/customer/laura.jpg");
+    this.load.image("elizabeth", "/assets/customer/elizabeth.jpg");
+    this.load.image("klara", "/assets/customer/klara.jpg");
   }
 
   create() {
