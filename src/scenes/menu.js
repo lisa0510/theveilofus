@@ -1,63 +1,87 @@
 import Phaser from "phaser";
-import datacustomers from "../datacustomers.js";
 
 export default class Menu extends Phaser.Scene {
   constructor() {
     super("Menu");
   }
 
+  preload() {
+    this.load.image("introBg", "/assets/blockout/baristaStation/MirrorView_BaristaStation_Blockout01.png");
+  }
+
   create() {
+    const { width, height } = this.scale;
     const { centerX, centerY } = this.cameras.main;
 
-    this.cameras.main.setBackgroundColor("#f5e6c8");
+    // großes Hintergrundbild
+    // absichtlich seitlich verschoben starten
+    this.bg = this.add.image(centerX + 850, centerY, "introBg");
+    this.bg.setDisplaySize(width * 1.1, height * 1.1);
 
-    this.add.text(centerX, centerY - 180, "The Veil of Us", {
-      fontSize: "52px",
-      color: "#2b1f1f"
+    // optional dunkler Overlay für mehr Atmosphäre
+    //this.overlay = this.add.rectangle(centerX, centerY, width, height, 0x000000, 0.15);
+
+    this.title = this.add.text(centerX * 0.4, height * 0.3, "The Veil of Us", {
+      fontSize: "50px",
+      color: "#f5efe6",
+      fontFamily: "cursive",
     }).setOrigin(0.5);
 
-    // Start button
-    const startButton = this.add.rectangle(centerX, centerY, 260, 100, 0xffffff);
-    startButton.setInteractive({ useHandCursor: true });
 
-    this.add.text(centerX, centerY, "Start Game", {
-      fontSize: "30px",
-      color: "#000"
+    this.startButton = this.add.rectangle(width * 0.2, height * 0.5, 240, 90, 0xffffff, 0.95);
+    this.startButton.setStrokeStyle(2, 0x3b2a24);
+    this.startButton.setInteractive({ useHandCursor: true });
+
+    this.startText = this.add.text(width * 0.2, height * 0.5, "Start Game", {
+      fontSize: "25px",
+      color: "#000000",
+      fontFamily: "cursive",
     }).setOrigin(0.5);
 
-    startButton.on("pointerdown", () => {
-      this.scene.start("Customer", { customer: datacustomers[0] });
-    });
+    this.settingsButton = this.add.rectangle(width * 0.2, height * 0.65, 240, 90, 0xffffff, 0.95);
+    this.settingsButton.setStrokeStyle(2, 0x3b2a24);
+    this.settingsButton.setInteractive({ useHandCursor: true });
 
-    startButton.on("pointerover", () => {
-      startButton.setFillStyle(0xdddddd);
-    });
-
-    startButton.on("pointerout", () => {
-      startButton.setFillStyle(0xffffff);
-    });
-
-    // Settings button
-    const settingsY = centerY + 130;
-
-    const settingsButton = this.add.rectangle(centerX, settingsY, 260, 100, 0x8b668b);
-    settingsButton.setInteractive({ useHandCursor: true });
-
-    this.add.text(centerX, settingsY, "Settings", {
-      fontSize: "28px",
-      color: "#000"
+    this.settingsText = this.add.text(width * 0.2, height * 0.65, "Settings", {
+      fontSize: "25px",
+      color: "#000000",
+      fontFamily: "cursive",
     }).setOrigin(0.5);
 
-    settingsButton.on("pointerdown", () => {
-      console.log("Settings clicked");
+    // Start Game Klick
+    this.startButton.on("pointerdown", () => {
+      this.playIntroReveal();
+    });
+  }
+
+  playIntroReveal() {
+    this.startButton.disableInteractive();
+    this.settingsButton.disableInteractive();
+
+    // Buttons ausblenden
+    this.tweens.add({
+      targets: [
+        this.startButton,
+        this.startText,
+        this.settingsButton,
+        this.settingsText,
+        this.title
+      ],
+      alpha: 0,
+      y: "-=20",
+      duration: 800,
+      ease: "Sine.easeOut"
     });
 
-    settingsButton.on("pointerover", () => {
-      settingsButton.setFillStyle(0xa57aa5);
+    // Hintergrund smooth in die Mitte bewegen Animation
+    this.tweens.add({
+      targets: this.bg,
+      x: this.cameras.main.centerX,
+      overlay: 0.85,
+      duration: 2000,
+      ease: "Sine.easeInOut"
     });
 
-    settingsButton.on("pointerout", () => {
-      settingsButton.setFillStyle(0x8b668b);
-    });
+   
   }
 }

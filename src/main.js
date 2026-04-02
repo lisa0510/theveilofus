@@ -9,7 +9,7 @@ import Customer from "./scenes/customerdialogue.js";
 const config = {
   type: Phaser.AUTO,
   parent: "app",
-  backgroundColor: "#f5e6c8",
+  backgroundColor: "x000000",
   scene: [Menu, Customer, CoffeeBar],
   scale: {
     mode: Phaser.Scale.RESIZE,

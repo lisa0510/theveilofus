@@ -1,5 +1,5 @@
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: cursive;
 }
 
 html, body, #app {
@@ -11,5 +11,4 @@ html, body, #app {
 
 body {
   overflow: hidden;
-  background: #f5e6c8;
 }
