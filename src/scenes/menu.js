@@ -16,8 +16,6 @@ export default class Menu extends Phaser.Scene {
     const { width, height } = this.scale;
     const { centerX, centerY } = this.cameras.main;
 
-    // großes Hintergrundbild
-    // absichtlich seitlich verschoben starten
     this.bg = this.add.image(centerX + 850, centerY, "introBg");
     this.bg.setDisplaySize(width * 1.1, height * 1.1);
     this.klaraApronOff = this.add.image(centerX * 1.6, centerY * 0.5, "apronOff");
@@ -25,8 +23,12 @@ export default class Menu extends Phaser.Scene {
     this.apron = this.add.image(centerX * 1.25, centerY * 0.92, "apron");
     this.apron.setScale(0.13);
 
-    // optional dunkler Overlay für mehr Atmosphäre
-    //this.overlay = this.add.rectangle(centerX, centerY, width, height, 0x000000, 0.15);
+    this.apron.setInteractive({ draggable: true });
+
+    this.input.on('drag', (pointer, gameObject, dragX, dragY) => {
+      gameObject.x = dragX;
+      gameObject.y = dragY;
+    });
 
     this.title = this.add.text(centerX * 0.4, height * 0.3, "The Veil of Us", {
       fontSize: "50px",
@@ -55,37 +57,57 @@ export default class Menu extends Phaser.Scene {
       fontFamily: "cursive",
     }).setOrigin(0.5);
 
-    // Start Game Klick
     this.startButton.on("pointerdown", () => {
       this.playIntroReveal();
     });
   }
 
+
+update() {
+    //check distance between apron and klara
+    if (this.apron && this.klaraApronOff) {
+      const distance = Phaser.Math.Distance.Between(
+        this.apron.x, this.apron.y, 
+        this.klaraApronOff.x, this.klaraApronOff.y
+      );
+      if (distance < 150 && this.klaraApronOff.texture.key !== "apronUp") {
+        this.wearApron();
+      }
+    }
+  }
+
+  wearApron() {
+    this.klaraApronOff.setTexture("apronUp");
+    this.apron.setVisible(false);
+    this.apron.disableInteractive();
+
+    // scale up for playerfeedback
+    this.tweens.add({
+        targets: this.klaraApronOff,
+        scale: 0.11,
+        duration: 100,
+        yoyo: true,
+        ease: 'Quad.easeInOut'
+    });
+
+    console.log("Schürze angezogen!");
+  }
+
   playIntroReveal() {
-  this.startButton.disableInteractive();
-  this.settingsButton.disableInteractive();
+    this.startButton.disableInteractive();
+    
+    this.tweens.add({
+      targets: [this.startButton, this.startText, this.title, this.settingsButton, this.settingsText],
+      alpha: 0,
+      duration: 1500,
+      ease: "Sine.easeOut"
+    });
 
-  this.tweens.add({
-    targets: [
-      this.startButton,
-      this.startText,
-      this.settingsButton,
-      this.settingsText,
-      this.title
-    ],
-    alpha: 0,
-    y: "-=20",
-    duration: 800,
-    ease: "Sine.easeOut"
-  });
-
-  this.tweens.add({
-    targets: [this.bg, this.klaraApronOff, this.apron],
-    x: "-=850",
-    duration: 3000,
-    ease: "Sine.easeInOut"
-  });
-}
-
-  
+    this.tweens.add({
+      targets: [this.bg, this.klaraApronOff, this.apron],
+      x: "-=850",
+      duration: 3000,
+      ease: "Sine.easeInOut"
+    });
+  }
 }
