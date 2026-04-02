@@ -7,6 +7,9 @@ export default class Menu extends Phaser.Scene {
 
   preload() {
     this.load.image("introBg", "/assets/blockout/baristaStation/MirrorView_BaristaStation_Blockout01.png");
+    this.load.image("apronUp", "/assets/blockout/baristaStation/ApronON_BaristaStation_Blockout01.png");
+    this.load.image("apronOff", "/assets/blockout/baristaStation/ApronOFF_BaristaStation_Blockout01.png");
+    this.load.image("apron", "/assets/blockout/baristaStation/Apron_BaristaStation_Blockout01.png");
   }
 
   create() {
@@ -17,6 +20,10 @@ export default class Menu extends Phaser.Scene {
     // absichtlich seitlich verschoben starten
     this.bg = this.add.image(centerX + 850, centerY, "introBg");
     this.bg.setDisplaySize(width * 1.1, height * 1.1);
+    this.klaraApronOff = this.add.image(centerX * 1.6, centerY * 0.5, "apronOff");
+    this.klaraApronOff.setScale(0.1);
+    this.apron = this.add.image(centerX * 1.25, centerY * 0.92, "apron");
+    this.apron.setScale(0.13);
 
     // optional dunkler Overlay für mehr Atmosphäre
     //this.overlay = this.add.rectangle(centerX, centerY, width, height, 0x000000, 0.15);
@@ -55,33 +62,30 @@ export default class Menu extends Phaser.Scene {
   }
 
   playIntroReveal() {
-    this.startButton.disableInteractive();
-    this.settingsButton.disableInteractive();
+  this.startButton.disableInteractive();
+  this.settingsButton.disableInteractive();
 
-    // Buttons ausblenden
-    this.tweens.add({
-      targets: [
-        this.startButton,
-        this.startText,
-        this.settingsButton,
-        this.settingsText,
-        this.title
-      ],
-      alpha: 0,
-      y: "-=20",
-      duration: 800,
-      ease: "Sine.easeOut"
-    });
+  this.tweens.add({
+    targets: [
+      this.startButton,
+      this.startText,
+      this.settingsButton,
+      this.settingsText,
+      this.title
+    ],
+    alpha: 0,
+    y: "-=20",
+    duration: 800,
+    ease: "Sine.easeOut"
+  });
 
-    // Hintergrund smooth in die Mitte bewegen Animation
-    this.tweens.add({
-      targets: this.bg,
-      x: this.cameras.main.centerX,
-      overlay: 0.85,
-      duration: 2000,
-      ease: "Sine.easeInOut"
-    });
+  this.tweens.add({
+    targets: [this.bg, this.klaraApronOff, this.apron],
+    x: "-=850",
+    duration: 3000,
+    ease: "Sine.easeInOut"
+  });
+}
 
-   
-  }
+  
 }
