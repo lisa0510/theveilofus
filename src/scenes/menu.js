@@ -101,7 +101,7 @@ export default class Menu extends Phaser.Scene {
     }
     
     this.time.delayedCall(1500, () => {
-      this.scene.start("CoffeeBar"); 
+      this.scene.start("Tutorial"); 
     });
   }
 

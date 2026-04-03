@@ -4,13 +4,14 @@ import "./style.css";
 import Menu from "./scenes/menu.js";
 import CoffeeBar from "./scenes/coffebar.js";
 import Customer from "./scenes/customerdialogue.js";
+import Tutorial from "./scenes/tutorial.js";
 
 
 const config = {
   type: Phaser.AUTO,
   parent: "app",
   backgroundColor: "x000000",
-  scene: [Menu, Customer, CoffeeBar],
+  scene: [Menu, Customer, CoffeeBar,Tutorial],
   scale: {
     mode: Phaser.Scale.FIT,
     autoCenter: Phaser.Scale.CENTER_BOTH,
