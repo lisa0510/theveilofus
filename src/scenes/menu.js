@@ -6,10 +6,10 @@ export default class Menu extends Phaser.Scene {
   }
 
   preload() {
-    this.load.image("introBg", "/assets/blockout/baristaStation/MirrorView_BaristaStation_Blockout01.png");
-    this.load.image("apronUp", "/assets/blockout/baristaStation/ApronON_BaristaStation_Blockout01.png");
-    this.load.image("apronOff", "/assets/blockout/baristaStation/ApronOFF_BaristaStation_Blockout01.png");
-    this.load.image("apron", "/assets/blockout/baristaStation/Apron_BaristaStation_Blockout01.png");
+    this.load.image("introBg", "/assets/MirrorView_BaristaStation_Blockout01.png");
+    this.load.image("apronUp", "/assets/ApronON_BaristaStation_Blockout01.png");
+    this.load.image("apronOff", "/assets/ApronOFF_BaristaStation_Blockout01.png");
+    this.load.image("apron", "/assets/Apron_BaristaStation_Blockout01.png");
     this.load.audio("unc", "/assets/audio/unc_marin.mp3");
   }
 
@@ -57,7 +57,8 @@ export default class Menu extends Phaser.Scene {
       this.playIntroReveal();
       this.time.delayedCall(2000, () => {
       this.sound.play("unc", { volume: 1 });
-      console.log("Start Game clicked!");
+      //this.scene.start("Tutorial"); 
+      //this.scene.start("day1_coffebar");
       });
     });
   }
@@ -155,7 +156,7 @@ export default class Menu extends Phaser.Scene {
       boxY,
       "Zieh dir die Schürze an und zeig mir wie man den Kaffee zubereitet! Wir öffnen gleich, Klara!",
       {
-        fontSize: "24px",
+        fontSize: "25px",
         color: "#2b1f1f",
         fontFamily: "cursive",
         align: "center",
