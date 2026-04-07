@@ -44,7 +44,7 @@ export default class Tutorial extends Phaser.Scene {
     this.add.image(width / 2.5, height / 1.7, "holder")
       .setScale(0.2);
 
-    const cup = this.add.image(width / 2, height / 1.2, "cup")
+    const cup = this.add.image(width / 2, height / 1.1, "cup")
       .setScale(0.05)
       .setInteractive({ cursor: 'pointer' });
 
