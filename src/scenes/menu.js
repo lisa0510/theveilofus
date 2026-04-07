@@ -54,12 +54,12 @@ export default class Menu extends Phaser.Scene {
     }).setOrigin(0.5);
 
     this.startButton.on("pointerdown", () => {
-      this.playIntroReveal();
-      this.time.delayedCall(2000, () => {
-      this.sound.play("unc", { volume: 1 });
-      //this.scene.start("Tutorial"); 
+      //this.playIntroReveal();
+      //this.time.delayedCall(2000, () => {
+      //this.sound.play("unc", { volume: 1 });
+      this.scene.start("Tutorial"); 
       //this.scene.start("day1_coffebar");
-      });
+      //});
     });
   }
 
