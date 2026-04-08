@@ -1,21 +1,21 @@
 const datacustomers = [
   {
-    id: "elizabeth",
-    name: "Elizabeth",
-    image: "elizabeth",
+    id: "karl",
+    name: "Karl",
+    image: "karl",
     order: "Black Coffee",
-    dialogue: "Hi love, It's been hell of a day. My husband got fired and I dont know how to please him properly. Maybe a black coffee could help him calm down?",
+    dialogue: "Guten Morgen, mir gehts heute nicht so gut. Ich hätte gerne einen schwarzen Kaffee, bitte.",
     choices: [
       {
-        text: "I dont care about your husband.",
-        customerReply: "Oh... right. Just make the coffee, please."
+        text: "Oh, tut mir leid zu hören. Was ist denn los?",
+        customerReply: "yapyap"
       },
       {
-        text: "Oh sorry my dear.",
-        customerReply: "Thank you. That's really sweet of you."
+        text: "Ich habe keine Zeit für das",
+        customerReply: "(murmelt) will sie nicht wissen, was los ist? frech"
       }
     ],
-    reaction: "Thanks for the coffee."
+    reaction: "Danke, das ist genau das, was ich brauche."
   },
   {
     id: "lukarde",

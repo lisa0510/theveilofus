@@ -6,10 +6,10 @@ export default class Menu extends Phaser.Scene {
   }
 
   preload() {
-    this.load.image("introBg", "/assets/MirrorView_BaristaStation_Blockout01.png");
-    this.load.image("apronUp", "/assets/ApronON_BaristaStation_Blockout01.png");
-    this.load.image("apronOff", "/assets/ApronOFF_BaristaStation_Blockout01.png");
-    this.load.image("apron", "/assets/Apron_BaristaStation_Blockout01.png");
+    this.load.image("introBg", "/assets/blockout/baristaStation/MirrorView_BaristaStation_Blockout01.png");
+    this.load.image("apronUp", "/assets/blockout/baristaStation/ApronON_BaristaStation_Blockout01.png");
+    this.load.image("apronOff", "/assets/blockout/baristaStation/ApronOFF_BaristaStation_Blockout01.png");
+    this.load.image("apron", "/assets/blockout/baristaStation/Apron_BaristaStation_Blockout01.png");
     this.load.audio("unc", "/assets/audio/unc_marin.mp3");
   }
 
