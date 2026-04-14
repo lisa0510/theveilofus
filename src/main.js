@@ -1,18 +1,14 @@
 import Phaser from "phaser";
 import "./style.css";
 
-import Menu from "./scenes/menu.js";
-import CoffeeBar from "./scenes/coffebar.js";
-import Customer from "./scenes/customerdialogue.js";
-import Tutorial from "./scenes/tutorial.js";
-import Day1_coffebar from "./scenes/day1_coffebar.js";
+import Menu from "./scenes/menuv1.js";
 
 
 const config = {
   type: Phaser.AUTO,
   parent: "app",
   backgroundColor: "x000000",
-  scene: [Day1_coffebar,CoffeeBar,Menu,Tutorial,Customer],
+  scene: [Menu],
   scale: {
     mode: Phaser.Scale.FIT,
     autoCenter: Phaser.Scale.CENTER_BOTH,
