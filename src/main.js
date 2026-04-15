@@ -2,14 +2,14 @@ import Phaser from "phaser";
 import "./style.css";
 
 import Menu from "./scenes/menu.js";
-import Kitchen from "./scenes/kitchen.js";
+import Pinboard from "./scenes/pinboard.js";
 
 
 const config = {
   type: Phaser.AUTO,
   parent: "app",
   backgroundColor: "x000000",
-  scene: [Menu, Kitchen],
+  scene: [Menu, Pinboard],
   scale: {
     mode: Phaser.Scale.FIT,
     autoCenter: Phaser.Scale.CENTER_BOTH,

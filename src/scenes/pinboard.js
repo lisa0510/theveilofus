@@ -7,7 +7,7 @@ export default class Kitchen extends Phaser.Scene {
     const { width, height } = this.scale;
 
     // Großer roter Text, genau in der Mitte zentriert
-    this.add.text(width / 2, height / 2, 'KITCHEN', {
+    this.add.text(width / 2, height / 2, 'Pinboard', {
       fontSize: '84px', // Schön groß
       color: '#ff0000', // Reines Rot
       fontStyle: 'bold',
