@@ -1,17 +1,24 @@
-export default class Kitchen extends Phaser.Scene {
+export default class Pinboard extends Phaser.Scene {
   constructor() {
-    super('Kitchen');
+    super("Pinboard");
   }
 
   create() {
-    const { width, height } = this.scale;
-
-    // Großer roter Text, genau in der Mitte zentriert
-    this.add.text(width / 2, height / 2, 'Pinboard', {
-      fontSize: '84px', // Schön groß
-      color: '#ff0000', // Reines Rot
-      fontStyle: 'bold',
-      fontFamily: 'Arial' // Oder deine bevorzugte Schriftart
-    }).setOrigin(0.5); // Setzt den Ankerpunkt in die Mitte des Textes
+     const { width, height } = this.scale;
+    this.add.rectangle(width / 2, height / 2, width, height, 0xf4e6c8);
+    if (this.textures.exists('userDrawing')) {
+      this.add.image(width / 2, height / 2, 'userDrawing')
+          .setScale(0.5)
+          .setAlpha(0);
+          
+     
+      this.tweens.add({
+        targets: this.children.list[this.children.list.length - 1],
+        alpha: 1,
+        duration: 800
+      });
+    } else {
+      console.warn("Zeichnung wurde nicht gefunden!");
+    }
   }
 }
