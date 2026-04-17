@@ -7,6 +7,7 @@ export default class MenuScene extends Phaser.Scene {
 
   preload() {
     this.load.image("holz", "assets/holz.png");
+    this.load.image("pinsel", "assets/pinsel.jpg");
   }
 
   create() {
@@ -57,11 +58,14 @@ export default class MenuScene extends Phaser.Scene {
       currentBrush: "marker",
     };
 
+    this.canDraw = false;
+
     this.lastPos = null;
 
     // ✏️ DRAWING
     this.input.on("pointermove", (pointer) => {
       if (!pointer.isDown) return;
+      if (!this.canDraw) return;
 
       const localX = pointer.x - canvasX;
       const localY = pointer.y - canvasY;
@@ -98,27 +102,6 @@ export default class MenuScene extends Phaser.Scene {
       } else if (this.settings.currentBrush === "pencil") {
         brush.fillStyle(this.settings.color, 1);
         brush.fillCircle(localX, localY, 1);
-
-        // WATERCOLOR
-      } else if (this.settings.currentBrush === "watercolor") {
-        for (let i = 0; i < 6; i++) {
-          const x = localX + Phaser.Math.FloatBetween(-10, 10);
-          const y = localY + Phaser.Math.FloatBetween(-10, 10);
-          const radius = Phaser.Math.FloatBetween(5, 20);
-          const alpha = Phaser.Math.FloatBetween(0.02, 0.05);
-
-          brush.fillStyle(this.settings.color, alpha);
-          brush.fillCircle(x, y, radius);
-        }
-
-        // SPRAY
-      } else if (this.settings.currentBrush === "spray") {
-        for (let i = 0; i < 10; i++) {
-          const offsetX = Phaser.Math.Between(-15, 15);
-          const offsetY = Phaser.Math.Between(-15, 15);
-          brush.fillStyle(this.settings.color, 0.6);
-          brush.fillCircle(localX + offsetX, localY + offsetY, 2);
-        }
       }
 
       rt.draw(brush);
@@ -138,13 +121,16 @@ export default class MenuScene extends Phaser.Scene {
       0xff66cc,
     ];
 
+    const baseX = width - 280;
+    const paletteY = height / 2;
+
     const currentColorPreview = this.add
-      .rectangle(30, 420, 40, 40, this.settings.color)
+      .rectangle(baseX, paletteY + 60, 40, 40, this.settings.color)
       .setStrokeStyle(2, 0x000000);
 
     colors.forEach((color, index) => {
       const swatch = this.add
-        .rectangle(30 + index * 45, 350, 30, 30, color)
+        .rectangle(baseX + index * 45, paletteY, 30, 30, color)
         .setStrokeStyle(2, 0x000000)
         .setInteractive({ useHandCursor: true })
         .on("pointerdown", () => {
@@ -195,7 +181,7 @@ export default class MenuScene extends Phaser.Scene {
       .text(width - 180, height - 80, "Done", {
         fontSize: "25px",
         fontFamily: "cursive",
-        backgroundColor: "#ce9b80",
+        backgroundColor: "#ffffff",
         color: "#2b1f1f",
         padding: { x: 14, y: 8 },
       })
@@ -219,5 +205,11 @@ export default class MenuScene extends Phaser.Scene {
 
     startBtn.on("pointerover", () => startBtn.setScale(1.05));
     startBtn.on("pointerout", () => startBtn.setScale(1));
+
+    // Add pinsel image on the left side
+    const pinselImg = this.add.image(80, height / 2, 'pinsel').setScale(0.5).setInteractive({ useHandCursor: true });
+    pinselImg.on('pointerdown', () => {
+      this.canDraw = true;
+    });
   }
 }
