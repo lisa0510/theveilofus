@@ -11,7 +11,7 @@ const config = {
   type: Phaser.AUTO,
   parent: "app",
   backgroundColor: "x000000",
-  scene: [ThoughtsBubbles, Menu, Pinboard, Random],
+  scene: [Menu, Pinboard,ThoughtsBubbles, Random],
   scale: {
     mode: Phaser.Scale.FIT,
     autoCenter: Phaser.Scale.CENTER_BOTH,
