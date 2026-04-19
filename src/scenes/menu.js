@@ -6,18 +6,22 @@ export default class MenuScene extends Phaser.Scene {
   }
 
   preload() {
-    this.load.image("holz", "assets/holz.png");
-    this.load.image("pinsel", "assets/pinsel.jpg");
+    this.load.image("holz", "assets/Chapter01/Menü/Hintergrund_Menü_Chapter01.png");
+    this.load.audio("kids", "assets/audio/kids.mp3");
   }
 
   create() {
     const { width, height } = this.scale;
 
+    // 🎵 Music setup
+    this.music = this.sound.add("kids", { loop: true, volume: 0.6 });
+    this.music.play();
+
     this.cameras.main.fadeIn(800);
     this.input.setDefaultCursor("crosshair");
 
     // 🪵 Background
-    this.add.image(width / 2, height / 2, "holz").setDisplaySize(width, height);
+    const background = this.add.image(width / 2, height / 2, "holz").setDisplaySize(width, height);
 
     // 📄 Canvas setup
     const canvasWidth = 600;
@@ -25,7 +29,7 @@ export default class MenuScene extends Phaser.Scene {
     const canvasX = width / 2 - canvasWidth / 2;
     const canvasY = height / 2 - canvasHeight / 2;
 
-    // Shadow (nice effect)
+    // Shadow
     this.add.rectangle(
       canvasX + canvasWidth / 2 + 5,
       canvasY + canvasHeight / 2 + 5,
@@ -35,7 +39,7 @@ export default class MenuScene extends Phaser.Scene {
       0.2
     );
 
-    // White paper
+    // Paper
     this.add.rectangle(
       canvasX + canvasWidth / 2,
       canvasY + canvasHeight / 2,
@@ -44,83 +48,66 @@ export default class MenuScene extends Phaser.Scene {
       0xffffff
     );
 
-    // 🧠 RenderTexture (drawing surface)
+    // 🎨 Drawing surface
     const rt = this.add
       .renderTexture(canvasX, canvasY, canvasWidth, canvasHeight)
       .setOrigin(0);
 
-    // 🔥 IMPORTANT: invisible brush (no duplicate rendering)
     const brush = this.make.graphics({ x: 0, y: 0, add: false });
 
     this.settings = {
-      brushSize: 8,
+      brushSize: 14,
       color: 0x3b2a24,
-      currentBrush: "marker",
     };
 
-    this.canDraw = false;
+    this.canDraw = true;
 
-    this.lastPos = null;
-
-    // ✏️ DRAWING
+    // 🎨 WATERCOLOR DRAWING
     this.input.on("pointermove", (pointer) => {
-      if (!pointer.isDown) return;
-      if (!this.canDraw) return;
+      if (!pointer.isDown || !this.canDraw) return;
 
       const localX = pointer.x - canvasX;
       const localY = pointer.y - canvasY;
 
-      // stay inside canvas
+      // Stay inside paper
       if (
         localX < 0 ||
         localX > canvasWidth ||
         localY < 0 ||
         localY > canvasHeight
-      ) {
-        this.lastPos = null;
-        return;
-      }
+      ) return;
 
       brush.clear();
+      const steps = 8;
 
-      // MARKER (soft + slight wobble)
-      if (this.settings.currentBrush === "marker") {
-        if (this.lastPos) {
-          const wobble = 1.5;
+      for (let i = 0; i < steps; i++) {
+        const offsetX = Phaser.Math.FloatBetween(-10, 10);
+        const offsetY = Phaser.Math.FloatBetween(-10, 10);
+        const radius = Phaser.Math.FloatBetween(
+          this.settings.brushSize * 0.5,
+          this.settings.brushSize * 1.5
+        );
 
-          brush.lineStyle(this.settings.brushSize, this.settings.color, 0.6);
-          brush.lineBetween(
-            this.lastPos.x + Phaser.Math.FloatBetween(-wobble, wobble),
-            this.lastPos.y + Phaser.Math.FloatBetween(-wobble, wobble),
-            localX + Phaser.Math.FloatBetween(-wobble, wobble),
-            localY + Phaser.Math.FloatBetween(-wobble, wobble)
-          );
-        }
-        this.lastPos = { x: localX, y: localY };
+        const colorVariation = Phaser.Display.Color.IntegerToColor(this.settings.color);
+        colorVariation.red += Phaser.Math.Between(-10, 10);
+        colorVariation.green += Phaser.Math.Between(-10, 10);
+        colorVariation.blue += Phaser.Math.Between(-10, 10);
 
-        // PENCIL
-      } else if (this.settings.currentBrush === "pencil") {
-        brush.fillStyle(this.settings.color, 1);
-        brush.fillCircle(localX, localY, 1);
+        const finalColor = Phaser.Display.Color.GetColor(
+          Phaser.Math.Clamp(colorVariation.red, 0, 255),
+          Phaser.Math.Clamp(colorVariation.green, 0, 255),
+          Phaser.Math.Clamp(colorVariation.blue, 0, 255)
+        );
+
+        const alpha = Phaser.Math.FloatBetween(0.02, 0.08);
+        brush.fillStyle(finalColor, alpha);
+        brush.fillCircle(localX + offsetX, localY + offsetY, radius);
       }
-
       rt.draw(brush);
     });
 
-    this.input.on("pointerup", () => {
-      this.lastPos = null;
-    });
-
     // 🎨 COLOR PALETTE
-    const colors = [
-      0x3b2a24,
-      0xff0000,
-      0x00aaff,
-      0x00cc66,
-      0xffff00,
-      0xff66cc,
-    ];
-
+    const colors = [0x3b2a24, 0xff6b6b, 0x4dabf7, 0x51cf66, 0xffd43b, 0xf783ac];
     const baseX = width - 280;
     const paletteY = height / 2;
 
@@ -142,7 +129,7 @@ export default class MenuScene extends Phaser.Scene {
       swatch.on("pointerout", () => swatch.setScale(1));
     });
 
-    // 🧽 CLEAR BUTTON
+    // 🧽 CLEAR
     const clearBtn = this.add
       .text(30, 50, "Wipe Table", {
         fontSize: "25px",
@@ -156,27 +143,7 @@ export default class MenuScene extends Phaser.Scene {
         rt.clear();
       });
 
-    clearBtn.on("pointerover", () => clearBtn.setScale(1.05));
-    clearBtn.on("pointerout", () => clearBtn.setScale(1));
-
-    // 💬 NOTICE
-    const notice = this.add
-      .text(width / 2, height - 40, "Klara, möchtest du nicht etwas zeichnen?", {
-        fontSize: "20px",
-        color: "#3b2a24",
-      })
-      .setOrigin(0.5);
-
-    this.time.delayedCall(5000, () => {
-      this.tweens.add({
-        targets: notice,
-        alpha: 0,
-        duration: 500,
-        onComplete: () => notice.destroy(),
-      });
-    });
-
-    // ✅ DONE BUTTON
+    // ✅ DONE
     const startBtn = this.add
       .text(width - 180, height - 80, "Done", {
         fontSize: "25px",
@@ -188,28 +155,53 @@ export default class MenuScene extends Phaser.Scene {
       .setInteractive({ useHandCursor: true })
       .on("pointerdown", () => {
         this.input.setDefaultCursor("default");
+        this.canDraw = false; // Disable drawing during transition
+
+        if (this.music && this.music.isPlaying) {
+          this.music.stop();
+        }
+
+        // --- NEW: Overlay to fade background to 0.5 opacity look ---
+        const overlay = this.add.rectangle(width / 2, height / 2, width, height, 0x000000, 0)
+          .setDepth(90);
+
+        this.tweens.add({
+          targets: overlay,
+          fillAlpha: 0.8,
+          duration: 500
+        });
 
         rt.snapshot((image) => {
           if (this.textures.exists("userDrawing")) {
             this.textures.remove("userDrawing");
           }
-
           this.textures.addImage("userDrawing", image);
 
-          this.cameras.main.fadeOut(500);
-          this.cameras.main.once("camerafadeoutcomplete", () => {
-            this.scene.start("Pinboard");
+          const transitionText = this.add.text(width / 2, height / 2, "placeholder for chapter 1 animation", {
+            fontSize: "22px",
+            fontFamily: "cursive",
+            color: "#ffffff",
+            backgroundColor: "rgba(0, 0, 0, 0.6)",
+            padding: { x: 12, y: 8 },
+            align: "center"
+          })
+            .setOrigin(0.5)
+            .setDepth(100)
+            .setAlpha(0);
+
+          this.tweens.add({
+            targets: transitionText,
+            alpha: 1,
+            duration: 500,
+          });
+
+          this.time.delayedCall(2000, () => {
+            this.cameras.main.fadeOut(800);
+            this.cameras.main.once("camerafadeoutcomplete", () => {
+              this.scene.start("Pinboard");
+            });
           });
         });
       });
-
-    startBtn.on("pointerover", () => startBtn.setScale(1.05));
-    startBtn.on("pointerout", () => startBtn.setScale(1));
-
-    // Add pinsel image on the left side
-    const pinselImg = this.add.image(80, height / 2, 'pinsel').setScale(0.5).setInteractive({ useHandCursor: true });
-    pinselImg.on('pointerdown', () => {
-      this.canDraw = true;
-    });
   }
 }
