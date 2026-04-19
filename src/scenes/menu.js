@@ -13,6 +13,7 @@ export default class MenuScene extends Phaser.Scene {
   create() {
     const { width, height } = this.scale;
 
+    // 🎵 Music setup
     this.music = this.sound.add("kids", { loop: true, volume: 0.6 });
     this.music.play();
 
@@ -20,7 +21,7 @@ export default class MenuScene extends Phaser.Scene {
     this.input.setDefaultCursor("crosshair");
 
     // 🪵 Background
-    this.add.image(width / 2, height / 2, "holz").setDisplaySize(width, height);
+    const background = this.add.image(width / 2, height / 2, "holz").setDisplaySize(width, height);
 
     // 📄 Canvas setup
     const canvasWidth = 600;
@@ -68,7 +69,7 @@ export default class MenuScene extends Phaser.Scene {
       const localX = pointer.x - canvasX;
       const localY = pointer.y - canvasY;
 
-      // stay inside paper
+      // Stay inside paper
       if (
         localX < 0 ||
         localX > canvasWidth ||
@@ -77,19 +78,16 @@ export default class MenuScene extends Phaser.Scene {
       ) return;
 
       brush.clear();
-
       const steps = 8;
 
       for (let i = 0; i < steps; i++) {
         const offsetX = Phaser.Math.FloatBetween(-10, 10);
         const offsetY = Phaser.Math.FloatBetween(-10, 10);
-
         const radius = Phaser.Math.FloatBetween(
           this.settings.brushSize * 0.5,
           this.settings.brushSize * 1.5
         );
 
-        // slight color variation (very important for watercolor feel)
         const colorVariation = Phaser.Display.Color.IntegerToColor(this.settings.color);
         colorVariation.red += Phaser.Math.Between(-10, 10);
         colorVariation.green += Phaser.Math.Between(-10, 10);
@@ -102,24 +100,14 @@ export default class MenuScene extends Phaser.Scene {
         );
 
         const alpha = Phaser.Math.FloatBetween(0.02, 0.08);
-
         brush.fillStyle(finalColor, alpha);
         brush.fillCircle(localX + offsetX, localY + offsetY, radius);
       }
-
       rt.draw(brush);
     });
 
     // 🎨 COLOR PALETTE
-    const colors = [
-      0x3b2a24,
-      0xff6b6b,
-      0x4dabf7,
-      0x51cf66,
-      0xffd43b,
-      0xf783ac,
-    ];
-
+    const colors = [0x3b2a24, 0xff6b6b, 0x4dabf7, 0x51cf66, 0xffd43b, 0xf783ac];
     const baseX = width - 280;
     const paletteY = height / 2;
 
@@ -167,21 +155,51 @@ export default class MenuScene extends Phaser.Scene {
       .setInteractive({ useHandCursor: true })
       .on("pointerdown", () => {
         this.input.setDefaultCursor("default");
+        this.canDraw = false; // Disable drawing during transition
 
         if (this.music && this.music.isPlaying) {
           this.music.stop();
         }
 
+        // --- NEW: Overlay to fade background to 0.5 opacity look ---
+        const overlay = this.add.rectangle(width / 2, height / 2, width, height, 0x000000, 0)
+          .setDepth(90);
+
+        this.tweens.add({
+          targets: overlay,
+          fillAlpha: 0.8,
+          duration: 500
+        });
+
         rt.snapshot((image) => {
           if (this.textures.exists("userDrawing")) {
             this.textures.remove("userDrawing");
           }
-
           this.textures.addImage("userDrawing", image);
 
-          this.cameras.main.fadeOut(500);
-          this.cameras.main.once("camerafadeoutcomplete", () => {
-            this.scene.start("Pinboard");
+          const transitionText = this.add.text(width / 2, height / 2, "placeholder for chapter 1 animation", {
+            fontSize: "22px",
+            fontFamily: "cursive",
+            color: "#ffffff",
+            backgroundColor: "rgba(0, 0, 0, 0.6)",
+            padding: { x: 12, y: 8 },
+            align: "center"
+          })
+            .setOrigin(0.5)
+            .setDepth(100)
+            .setAlpha(0);
+
+          this.tweens.add({
+            targets: transitionText,
+            alpha: 1,
+            duration: 500,
+          });
+
+          this.time.delayedCall(2000, () => {
+            this.cameras.main.fadeOut(800);
+            this.cameras.main.once("camerafadeoutcomplete", () => {
+              this.scene.start("Pinboard");
+            });
           });
         });
       });

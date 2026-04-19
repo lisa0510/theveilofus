@@ -49,7 +49,8 @@ export default class Pinboard extends Phaser.Scene {
       .setDepth(2);
 
     this.progressBarText = this.add.text(progressBarX, progressBarY, 'Progress: 0/4', {
-      fontSize: '18px',
+      fontSize: '15px',
+      fontFamily: 'cursive',
       color: '#000000'
     })
       .setOrigin(0.5)
