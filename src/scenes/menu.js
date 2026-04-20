@@ -13,7 +13,6 @@ export default class MenuScene extends Phaser.Scene {
   create() {
     const { width, height } = this.scale;
 
-    // 🎵 Music setup
     this.music = this.sound.add("kids", { loop: true, volume: 0.6 });
     this.music.play();
 
@@ -21,37 +20,23 @@ export default class MenuScene extends Phaser.Scene {
     this.input.setDefaultCursor("crosshair");
 
     // 🪵 Background
-    const background = this.add.image(width / 2, height / 2, "holz").setDisplaySize(width, height);
+    this.add.image(width / 2, height / 2, "holz").setDisplaySize(width, height);
 
     // 📄 Canvas setup
-    const canvasWidth = 600;
-    const canvasHeight = 400;
-    const canvasX = width / 2 - canvasWidth / 2;
-    const canvasY = height / 2 - canvasHeight / 2;
+    const canvasWidth = 850;
+    const canvasHeight = 550;
+    this.canDraw = true;
 
-    // Shadow
-    this.add.rectangle(
-      canvasX + canvasWidth / 2 + 5,
-      canvasY + canvasHeight / 2 + 5,
-      canvasWidth,
-      canvasHeight,
-      0x000000,
-      0.2
-    );
+    const canvasContainer = this.add.container(width / 2, height / 2);
 
-    // Paper
-    this.add.rectangle(
-      canvasX + canvasWidth / 2,
-      canvasY + canvasHeight / 2,
-      canvasWidth,
-      canvasHeight,
-      0xffffff
-    );
+    const shadow = this.add.rectangle(8, 8, canvasWidth, canvasHeight, 0x000000, 0.2);
+    const paper = this.add.rectangle(0, 0, canvasWidth, canvasHeight, 0xffffff);
 
-    // 🎨 Drawing surface
-    const rt = this.add
-      .renderTexture(canvasX, canvasY, canvasWidth, canvasHeight)
-      .setOrigin(0);
+    const rt = this.add.renderTexture(0, 0, canvasWidth, canvasHeight)
+  .setOrigin(0.5);
+
+    canvasContainer.add([shadow, paper, rt]);
+    canvasContainer.setAngle(-2.5);
 
     const brush = this.make.graphics({ x: 0, y: 0, add: false });
 
@@ -59,65 +44,67 @@ export default class MenuScene extends Phaser.Scene {
       brushSize: 14,
       color: 0x3b2a24,
     };
+    // ✏️ DRAWING (FINAL FIX FOR ROTATED CANVAS)
+this.input.on("pointermove", (pointer) => {
+  if (!pointer.isDown || !this.canDraw) return;
 
-    this.canDraw = true;
+  const localPoint = canvasContainer.getLocalPoint(pointer.x, pointer.y);
 
-    // 🎨 WATERCOLOR DRAWING
-    this.input.on("pointermove", (pointer) => {
-      if (!pointer.isDown || !this.canDraw) return;
+const drawX = localPoint.x + canvasWidth / 2;
+const drawY = localPoint.y + canvasHeight / 2;
 
-      const localX = pointer.x - canvasX;
-      const localY = pointer.y - canvasY;
+  // 3. Strict boundary check: Only draw if inside the 0 to Width/Height range
+  if (drawX < 0 || drawX > canvasWidth || drawY < 0 || drawY > canvasHeight) return;
 
-      // Stay inside paper
-      if (
-        localX < 0 ||
-        localX > canvasWidth ||
-        localY < 0 ||
-        localY > canvasHeight
-      ) return;
+  // 4. Clear the brush graphics before drawing the new "dab" of paint
+  brush.clear();
 
-      brush.clear();
-      const steps = 8;
+  const steps = 8;
+  for (let i = 0; i < steps; i++) {
+    const offsetX = Phaser.Math.FloatBetween(-10, 10);
+    const offsetY = Phaser.Math.FloatBetween(-10, 10);
+    const radius = Phaser.Math.FloatBetween(
+      this.settings.brushSize * 0.5,
+      this.settings.brushSize * 1.5
+    );
 
-      for (let i = 0; i < steps; i++) {
-        const offsetX = Phaser.Math.FloatBetween(-10, 10);
-        const offsetY = Phaser.Math.FloatBetween(-10, 10);
-        const radius = Phaser.Math.FloatBetween(
-          this.settings.brushSize * 0.5,
-          this.settings.brushSize * 1.5
-        );
+    const colorVariation = Phaser.Display.Color.IntegerToColor(this.settings.color);
+    colorVariation.red += Phaser.Math.Between(-10, 10);
+    colorVariation.green += Phaser.Math.Between(-10, 10);
+    colorVariation.blue += Phaser.Math.Between(-10, 10);
 
-        const colorVariation = Phaser.Display.Color.IntegerToColor(this.settings.color);
-        colorVariation.red += Phaser.Math.Between(-10, 10);
-        colorVariation.green += Phaser.Math.Between(-10, 10);
-        colorVariation.blue += Phaser.Math.Between(-10, 10);
+    const finalColor = Phaser.Display.Color.GetColor(
+      Phaser.Math.Clamp(colorVariation.red, 0, 255),
+      Phaser.Math.Clamp(colorVariation.green, 0, 255),
+      Phaser.Math.Clamp(colorVariation.blue, 0, 255)
+    );
 
-        const finalColor = Phaser.Display.Color.GetColor(
-          Phaser.Math.Clamp(colorVariation.red, 0, 255),
-          Phaser.Math.Clamp(colorVariation.green, 0, 255),
-          Phaser.Math.Clamp(colorVariation.blue, 0, 255)
-        );
+    const alpha = Phaser.Math.FloatBetween(0.02, 0.08);
 
-        const alpha = Phaser.Math.FloatBetween(0.02, 0.08);
-        brush.fillStyle(finalColor, alpha);
-        brush.fillCircle(localX + offsetX, localY + offsetY, radius);
-      }
-      rt.draw(brush);
-    });
+    brush.fillStyle(finalColor, alpha);
+    
+    // We draw the circle at the calculated local coordinates
+    brush.fillCircle(drawX + offsetX, drawY + offsetY, radius);
+  }
 
-    // 🎨 COLOR PALETTE
+  // 5. Draw the brush to the RenderTexture
+  // We do NOT pass drawX, drawY here because the brush already has the coordinates inside it
+  rt.draw(brush);
+});
+
+    // 🎨 COLORS
     const colors = [0x3b2a24, 0xff6b6b, 0x4dabf7, 0x51cf66, 0xffd43b, 0xf783ac];
-    const baseX = width - 280;
-    const paletteY = height / 2;
+
+    const baseX = width - 120;
+    const paletteY = height / 4;
 
     const currentColorPreview = this.add
-      .rectangle(baseX, paletteY + 60, 40, 40, this.settings.color)
+      .rectangle(baseX, paletteY - 60, 40, 40, this.settings.color)
       .setStrokeStyle(2, 0x000000);
 
     colors.forEach((color, index) => {
       const swatch = this.add
-        .rectangle(baseX + index * 45, paletteY, 30, 30, color)
+        .rectangle(baseX, paletteY + index * 45, 30, 30, color)
         .setStrokeStyle(2, 0x000000)
         .setInteractive({ useHandCursor: true })
         .on("pointerdown", () => {
@@ -129,39 +116,25 @@ export default class MenuScene extends Phaser.Scene {
       swatch.on("pointerout", () => swatch.setScale(1));
     });
 
-    // 🧽 CLEAR
-    const clearBtn = this.add
-      .text(30, 50, "Wipe Table", {
-        fontSize: "25px",
-        fontFamily: "cursive",
-        backgroundColor: "#ce9b80",
-        color: "#2b1f1f",
-        padding: { x: 10, y: 5 },
-      })
-      .setInteractive({ useHandCursor: true })
-      .on("pointerdown", () => {
-        rt.clear();
-      });
-
-    // ✅ DONE
+    // ✅ DONE BUTTON
     const startBtn = this.add
-      .text(width - 180, height - 80, "Done", {
+      .text(width - 100, height - 50, "Done", {
         fontSize: "25px",
         fontFamily: "cursive",
         backgroundColor: "#ffffff",
         color: "#2b1f1f",
         padding: { x: 14, y: 8 },
       })
+      .setOrigin(1, 1)
       .setInteractive({ useHandCursor: true })
       .on("pointerdown", () => {
         this.input.setDefaultCursor("default");
-        this.canDraw = false; // Disable drawing during transition
+        this.canDraw = false;
 
         if (this.music && this.music.isPlaying) {
           this.music.stop();
         }
 
-        // --- NEW: Overlay to fade background to 0.5 opacity look ---
         const overlay = this.add.rectangle(width / 2, height / 2, width, height, 0x000000, 0)
           .setDepth(90);
 
@@ -175,16 +148,22 @@ export default class MenuScene extends Phaser.Scene {
           if (this.textures.exists("userDrawing")) {
             this.textures.remove("userDrawing");
           }
+
           this.textures.addImage("userDrawing", image);
 
-          const transitionText = this.add.text(width / 2, height / 2, "placeholder for chapter 1 animation", {
-            fontSize: "22px",
-            fontFamily: "cursive",
-            color: "#ffffff",
-            backgroundColor: "rgba(0, 0, 0, 0.6)",
-            padding: { x: 12, y: 8 },
-            align: "center"
-          })
+          const transitionText = this.add.text(
+            width / 2,
+            height / 2,
+            "placeholder for chapter 1 animation",
+            {
+              fontSize: "22px",
+              fontFamily: "cursive",
+              color: "#ffffff",
+              backgroundColor: "rgba(0, 0, 0, 0.6)",
+              padding: { x: 12, y: 8 },
+              align: "center"
+            }
+          )
             .setOrigin(0.5)
             .setDepth(100)
             .setAlpha(0);
