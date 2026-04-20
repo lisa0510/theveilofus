@@ -27,7 +27,7 @@ export default class Pinboard extends Phaser.Scene {
   create() {
     const { width, height } = this.scale;
 
-    this.sound.play('lisaFreeup', { volume: 1 });
+    this.sound.play('lisaFreeup', { volume: 5 });
 
     this.progress = {
       drawingDeleted: false,
@@ -96,7 +96,7 @@ export default class Pinboard extends Phaser.Scene {
         container.add([shadow, paper, img]);
         container.setSize(paperWidth, paperHeight);
         
-        let drawingSound = this.sound.add('drawing', { volume: 1.5 });
+        let drawingSound = this.sound.add('drawing', { volume: 5 });
         container.on('pointerdown', () => {
           if (!drawingSound.isPlaying) {
             drawingSound.play();
