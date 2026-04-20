@@ -49,18 +49,22 @@ export default class Pinboard extends Phaser.Scene {
     const trash = this.add.image(width / 1.1, height / 1.1, 'trashCan').setScale(0.15).setDepth(5);
 
     const zoneFillColor = 0xffffff;
-    const zoneAlpha = 0.3;
+    const zoneAlpha = 0.5;
 
-    const letterZone = this.add.zone(width / 1.7, height / 2, 220, 280).setOrigin(0.5);
-    const letterOverlay = this.add.rectangle(letterZone.x, letterZone.y, 220, 280, zoneFillColor, zoneAlpha)
-      .setVisible(false);
+    const letterZoneX = width / 3.5;
+    const letterZoneY = height / 1.8;
+    const letterZone = this.add.zone(letterZoneX, letterZoneY, 220, 280).setOrigin(0.5);
+    const letterOverlay = this.add.rectangle(letterZoneX, letterZoneY, 220, 280, zoneFillColor, zoneAlpha)
+      .setVisible(false).setDepth(0);
 
-    const familyZone = this.add.zone(width / 3, height / 2, 220, 280).setOrigin(0.5);
-    const familyOverlay = this.add.rectangle(familyZone.x, familyZone.y, 220, 280, zoneFillColor, zoneAlpha)
-      .setVisible(false);
+    const familyZoneX = width / 1.6;
+    const familyZoneY = height / 2.2;
+    const familyZone = this.add.zone(familyZoneX, familyZoneY, 220, 280).setOrigin(0.5);
+    const familyOverlay = this.add.rectangle(familyZoneX, familyZoneY, 220, 280, zoneFillColor, zoneAlpha)
+      .setVisible(false).setDepth(0);
 
     const imageData = [
-      { key: 'userDrawing', x: width / 2.5, y: height / 2, scale: 1 },
+      { key: 'userDrawing', x: width / 2.5, y: height / 2, scale: 0.4 }, 
       { key: 'acceptanceLetter', x: width / 1.1, y: height / 1.5, scale: 0.25 },
       { key: 'family', x: width / 1.1, y: height / 3.5, scale: 0.7 },
       { key: 'bff', x: width / 1.5, y: height / 3, scale: 0.15 },
@@ -74,12 +78,19 @@ export default class Pinboard extends Phaser.Scene {
       let img = this.add.image(0, 0, data.key).setScale(data.scale);
 
       if (data.key === 'userDrawing') {
-        const paperWidth = 450;
-        const paperHeight = 350;
+        const paperWidth = 850 * data.scale; 
+        const paperHeight = 550 * data.scale;
         shadow = this.add.rectangle(8, 8, paperWidth, paperHeight, 0x000000, 0.25);
         const paper = this.add.rectangle(0, 0, paperWidth, paperHeight, 0xffffff);
         container.add([shadow, paper, img]);
         container.setSize(paperWidth, paperHeight);
+        
+        let drawingSound = this.sound.add('drawing', { volume: 1.5 });
+        container.on('pointerdown', () => {
+          if (!drawingSound.isPlaying) {
+            drawingSound.play();
+          }
+        });
       } else {
         shadow = this.add.image(6, 6, data.key).setScale(data.scale).setTint(0x000000).setAlpha(0.3);
         container.add([shadow, img]);
@@ -90,14 +101,10 @@ export default class Pinboard extends Phaser.Scene {
       container.setAngle(Phaser.Math.Between(-4, 4));
       container.setDepth(10);
 
-      if (data.key === 'userDrawing') {
-        container.on('pointerdown', () => this.sound.play('drawing', { volume: 1.5 }));
-      }
-
       container.on('drag', (pointer, dragX, dragY) => {
         container.setPosition(dragX, dragY);
         container.setDepth(50);
-        shadow.setPosition(12, 12); 
+        if (shadow) shadow.setPosition(12, 12); 
       });
 
       container.on('dragstart', () => {
@@ -111,7 +118,7 @@ export default class Pinboard extends Phaser.Scene {
         this.tweens.add({ targets: container, scale: 1, duration: 100 });
         container.setAngle(Phaser.Math.Between(-3, 3));
         container.setDepth(10);
-        shadow.setPosition(data.key === 'userDrawing' ? 8 : 6, data.key === 'userDrawing' ? 8 : 6);
+        if (shadow) shadow.setPosition(data.key === 'userDrawing' ? 8 : 6, data.key === 'userDrawing' ? 8 : 6);
         
         letterOverlay.setVisible(false);
         familyOverlay.setVisible(false);
@@ -146,7 +153,7 @@ export default class Pinboard extends Phaser.Scene {
             container.setPosition(zone.x, zone.y);
             container.setAngle(0);
             container.disableInteractive();
-            shadow.setVisible(false); 
+            if (shadow) shadow.setVisible(false); 
             this.progress[progressKey] = true;
             if (overlay) overlay.destroy();
             this.updateProgressBar();
@@ -163,13 +170,11 @@ export default class Pinboard extends Phaser.Scene {
   updateProgressBar() {
     const completed = Object.values(this.progress).filter(Boolean).length;
     const maxWidth = this.progressBarBg.width - 4;
-    
     this.tweens.add({
         targets: this.progressBarFill,
         width: (maxWidth * completed) / 4,
         duration: 200
     });
-    
   }
 
   checkRiddle() {
