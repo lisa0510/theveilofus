@@ -132,9 +132,6 @@ export default class MenuScene extends Phaser.Scene {
         this.canDraw = false;
         if (this.music && this.music.isPlaying) this.music.stop();
 
-        // --- DIE KORREKTUR ---
-        // In der RenderTexture ist (0,0) die Mitte. 
-        // Um unten rechts zu landen, müssen wir von der Mitte aus gehen:
         const xPos = (rt.width / 1.05); 
         const yPos = (rt.height / 1) ;
 

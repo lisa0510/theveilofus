@@ -12,7 +12,13 @@ export default class Pinboard extends Phaser.Scene {
     this.load.image('family', 'assets/Chapter01/Scene1/Familie_Pinboard_Scene1_Chapter01.png');
     this.load.image('pinboard', 'assets/Chapter01/Scene1/Pinboard_Scene1_Chapter01.png');
     this.load.image('trashCan', 'assets/Chapter01/Scene1/Abfall_Items_Scene1_Chapter01.png');
-    
+
+    this.load.image('doc', 'assets/Chapter01/Scene1/doc.png');
+    this.load.image('stat', 'assets/Chapter01/Scene1/stat.png');
+    this.load.image('certi', 'assets/Chapter01/Scene1/certi.png');
+    this.load.image('cal', 'assets/Chapter01/Scene1/cal.png');
+    this.load.image('game', 'assets/Chapter01/Scene1/game.png');
+
     this.load.audio('ripping', 'assets/audio/ripping.mp3');
     this.load.audio('lisaFreeup', 'assets/audio/test_lisa.mp3');
     this.load.audio('drawing', 'assets/audio/iusedto.mp3');
@@ -45,6 +51,11 @@ export default class Pinboard extends Phaser.Scene {
 
     this.add.image(width / 2, height / 2, 'bg_pinboard').setDisplaySize(width, height).setDepth(-2);
     this.add.image(width / 2 - 100, height / 2 - 30, 'pinboard').setScale(0.5).setDepth(-1);
+    this.add.image(width / 3.4 , height / 3.6, 'doc').setScale(0.4).setDepth(0);
+    this.add.image(width / 1.7 , height / 3.6, 'stat').setScale(0.3).setDepth(0);
+    this.add.image(width / 2 , height / 1.4, 'certi').setScale(0.7).setDepth(0);
+    this.add.image(width / 1.5 , height / 1.4, 'cal').setScale(0.3).setDepth(0).setRotation(-0.1);
+    this.add.image(width / 3.2 , height / 1.4, 'game').setScale(0.1).setDepth(0).setRotation(0.1);
 
     const trash = this.add.image(width / 1.1, height / 1.1, 'trashCan').setScale(0.15).setDepth(5);
 
@@ -53,11 +64,11 @@ export default class Pinboard extends Phaser.Scene {
 
     const letterZoneX = width / 3.5;
     const letterZoneY = height / 1.8;
-    const letterZone = this.add.zone(letterZoneX, letterZoneY, 220, 280).setOrigin(0.5);
-    const letterOverlay = this.add.rectangle(letterZoneX, letterZoneY, 220, 280, zoneFillColor, zoneAlpha)
+    const letterZone = this.add.zone(letterZoneX, letterZoneY, 370, 280).setOrigin(0.5);
+    const letterOverlay = this.add.rectangle(letterZoneX, letterZoneY, 370, 280, zoneFillColor, zoneAlpha)
       .setVisible(false).setDepth(0);
 
-    const familyZoneX = width / 1.6;
+    const familyZoneX = width / 2.3;
     const familyZoneY = height / 2.2;
     const familyZone = this.add.zone(familyZoneX, familyZoneY, 220, 280).setOrigin(0.5);
     const familyOverlay = this.add.rectangle(familyZoneX, familyZoneY, 220, 280, zoneFillColor, zoneAlpha)
