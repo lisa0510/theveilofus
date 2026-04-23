@@ -1,17 +1,14 @@
 import Phaser from "phaser";
 import "./style.css";
-
 import Menu from "./scenes/menu.js";
-import Pinboard from "./scenes/pinboard.js";
-import ThoughtsBubbles from "./scenes/thoughtsbubbles.js";
-import Random from "./scenes/random.js";
+import Fish from "./scenes/fish.js";
 
 
 const config = {
   type: Phaser.AUTO,
   parent: "app",
   backgroundColor: "x000000",
-  scene: [Menu, Pinboard,ThoughtsBubbles, Random],
+  scene: [Menu,Fish],
   scale: {
     mode: Phaser.Scale.FIT,
     autoCenter: Phaser.Scale.CENTER_BOTH,
