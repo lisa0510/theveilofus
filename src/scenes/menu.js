@@ -10,20 +10,16 @@ export default class Menu extends Phaser.Scene {
     create() {
         const { width, height } = this.scale;
 
-        // 1. Background (Full Screen)
         let bg = this.add.image(width / 2, height / 2, 'background');
         bg.setDisplaySize(width, height);
-
-        // 2. The Game Name (Center of screen)
-        let titleText = this.add.text(width / 2, height / 2, 'SUBMERGED', {
-            fontSize: '55px',
+        let titleText = this.add.text(width / 10, height / 10, 'RIBA', {
+            fontSize: '50px',
             fill: '#fff',
             fontFamily: 'cursive',
         });
         titleText.setOrigin(0.5);
 
-        // 3. Start Game Button (Positioned lower than the title)
-        let startButton = this.add.text(width / 2, height / 1.3, 'START GAME', { 
+        let startButton = this.add.text(width / 10, height / 2, 'START GAME', { 
             fontSize: '32px', 
             fill: '#ffffff',
             fontFamily: 'cursive',
@@ -34,13 +30,25 @@ export default class Menu extends Phaser.Scene {
         startButton.setOrigin(0.5);
         startButton.setInteractive({ useHandCursor: true });
 
-        // Visual Feedback (Hover effects)
         startButton.on('pointerover', () => startButton.setStyle({ fill: '#ff0' }));
         startButton.on('pointerout', () => startButton.setStyle({ fill: '#fff' }));
 
-        // Scene Transition
         startButton.on('pointerdown', () => {
             this.scene.start('Shop');
         });
+
+        let creditsButton = this.add.text(width / 10, height / 1.7, 'Credits', { 
+            fontSize: '32px', 
+            fill: '#ffffff',
+            fontFamily: 'cursive',
+            backgroundColor: '#000000aa',
+            padding: { x: 20, y: 10 }
+        });
+
+        creditsButton.setOrigin(0.5);
+        creditsButton.setInteractive({ useHandCursor: true });
+
+        creditsButton.on('pointerover', () => creditsButton.setStyle({ fill: '#ff0' }));
+        creditsButton.on('pointerout', () => creditsButton.setStyle({ fill: '#fff' }));
     }
 }
