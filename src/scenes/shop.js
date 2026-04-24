@@ -196,17 +196,9 @@ export default class Shop extends Phaser.Scene {
   const { width, height } = this.scale;
 
   if (this.whaleTimer) this.whaleTimer.remove();
-
-  // 1. Textur wechseln
   this.whaleSprite.setTexture(newTexture);
-
-  // 2. WICHTIG: Den Wal aus dem Container nehmen, 
-  // damit er absolute Bildschirm-Koordinaten nutzt
   this.whaleContainer.remove(this.whaleSprite);
-
-  // 3. Origin auf die Mitte setzen für einfachere Skalierung
   this.whaleSprite.setOrigin(0.5);
-
   this.whaleSprite.setPosition(width / 1.3, height / 4.5).setScale(0.6).setDepth(-6).setAlpha(1).setVisible(true);
   this.whaleUIElements.forEach(el => el.destroy());
 
