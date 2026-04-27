@@ -3,6 +3,7 @@ import "./style.css";
 import Menu from "./scenes/menu.js";
 import Shop from "./scenes/shop.js";
 import Tutorial from "./scenes/tutorial.js"
+import Test from "./scenes/test.js"
 
 
 const config = {
