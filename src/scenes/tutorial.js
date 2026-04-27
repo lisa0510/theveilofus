@@ -13,7 +13,7 @@ export default class Tutorial extends Phaser.Scene {
     this.load.image("tisch", "assets/Fish/Tisch.png");
     this.load.image("knive", "assets/Fish/knive.png");
     this.load.image("fish", "assets/Fish02/Fisch.png");
-    this.load.image("board"), "assets/Fish02/Schnittbrett.png)";
+    this.load.image("board", "assets/Fish02/Schnittbrett.png");
   }
 
   create() {
@@ -72,11 +72,8 @@ export default class Tutorial extends Phaser.Scene {
  startTutorialCutting() {
     const { width, height } = this.scale;
     
-    // Das schwarze Hintergrund-Overlay
     this.overlay = this.add.rectangle(width / 2, height / 2, width, height, 0x000000, 0.7).setDepth(100);
-    
-    // Das Board als Hintergrund für den Fisch (höhere Tiefe als Overlay, niedrigere als Fisch)
-    this.boardImg = this.add.image(width / 2, height / 2, "board").setDepth(101);
+    this.boardImg = this.add.image(width / 2, height / 2, "board").setDepth(101).setScale(0.7);
     
     this.spawnFish();
     this.startFishDialogue();
