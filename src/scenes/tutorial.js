@@ -117,8 +117,6 @@ export default class Tutorial extends Phaser.Scene {
 
   activateCuttingLogic() {
     let startPoint = null;
-
-    // Hier wurde die Prüfung (bounds.contains) entfernt:
     this.input.on("pointerdown", (pointer) => {
       startPoint = { x: pointer.x, y: pointer.y };
     });
@@ -140,32 +138,25 @@ export default class Tutorial extends Phaser.Scene {
     });
   }
 
- handleSlice(start, end) {
+  handleSlice(start, end) {
     const dx = Math.abs(end.x - start.x);
     const dy = Math.abs(end.y - start.y);
 
-    // 1. Prüfung: Ist der Schnitt vorwiegend vertikal?
-    // dy muss jetzt größer sein als dx. 
-    // Durch den Multiplikator (z.B. 1.5) erzwingen wir einen steilen Winkel.
-    if (dx > dy * 0.4) { 
+    // Strenger vertikaler Winkel (0.3)
+    if (dx > dy * 0.3) { 
       this.showInvalidFeedback("Invalid Cut! Cut vertically.");
       return;
     }
 
-    // 2. Prüfung: Ist der Schnitt lang genug?
     const distance = Phaser.Math.Distance.Between(start.x, start.y, end.x, end.y);
-    if (distance < 80) return; // Etwas kürzer für vertikale Schnitte
+    if (distance < 80) return;
 
     const bounds = this.fish.getBounds();
     const line = new Phaser.Geom.Line(start.x, start.y, end.x, end.y);
-
-    // 3. Prüfung: Trifft die Linie den Fisch?
     if (!Phaser.Geom.Intersects.LineToRectangle(line, bounds)) return;
 
-    // --- Gültiger vertikaler Schnitt ---
     this.input.removeAllListeners();
 
-    // Wir nehmen den Durchschnitt der X-Werte für die Position des Schnitts
     const cutX = (start.x + end.x) / 2;
     const fishLeft = this.fish.x - this.fish.displayWidth / 2;
     const localX = Phaser.Math.Clamp(cutX - fishLeft, 0, this.fish.displayWidth);
@@ -178,20 +169,11 @@ export default class Tutorial extends Phaser.Scene {
   showInvalidFeedback(message) {
     const { width, height } = this.scale;
     if (this.errorText) this.errorText.destroy();
-
     this.errorText = this.add.text(width / 2, height / 2 - 150, message, {
-      fontSize: "28px",
-      color: "#ff0000",
-      fontStyle: "bold",
-      backgroundColor: "#000000aa",
-      padding: { x: 15, y: 10 }
+      fontSize: "28px", color: "#ff0000", fontStyle: "bold", backgroundColor: "#000000aa", padding: { x: 15, y: 10 }
     }).setOrigin(0.5).setDepth(300);
-
     this.tweens.add({
-      targets: this.errorText,
-      alpha: 0,
-      y: "-=30",
-      duration: 1000,
+      targets: this.errorText, alpha: 0, y: "-=30", duration: 1000,
       onComplete: () => { if (this.errorText) this.errorText.destroy(); }
     });
   }
@@ -200,7 +182,6 @@ export default class Tutorial extends Phaser.Scene {
     const { x, y, displayWidth: w, displayHeight: h } = this.fish;
     const leftHalf = this.add.image(x, y, "fish").setDisplaySize(w, h).setCrop(0, 0, localX, h).setDepth(102);
     const rightHalf = this.add.image(x, y, "fish").setDisplaySize(w, h).setCrop(localX, 0, w - localX, h).setDepth(102);
-
     this.fish.destroy();
 
     const feedbackText = this.add.text(x, y - 120, `${percent}%`, {
@@ -232,23 +213,34 @@ export default class Tutorial extends Phaser.Scene {
     if (this.overlay) this.overlay.destroy();
     if (this.boardImg) this.boardImg.destroy();
 
-    const average = this.cuts.reduce((a, b) => a + b, 0) / this.cuts.length;
-    const diff = Math.abs(average - this.targetCM);
+    // Durchschnitt der Schnitte berechnen
+    const averagePercent = this.cuts.reduce((a, b) => a + b, 0) / this.cuts.length;
+    const diff = Math.abs(averagePercent - this.targetCM);
 
-    let endLines = diff <= 10 ? ["Perfekt vielen Dank."] : ["Der erste Versuch ist immer schwierig."];
-    let idx = 0;
+    // Text aus der dialogues.js laden
+    let finalMessage = "";
+    const feedbackTexts = dialogues.tutorial.feedback;
 
-    const endText = this.add.text(this.scale.width / 2, this.scale.height / 1.3, endLines[0], {
-      fontSize: "20px", color: "#ffffff", backgroundColor: "#000000aa", padding: { x: 20, y: 10 }
+    if (diff <= 2) {
+        finalMessage = feedbackTexts.perfect;
+    } else if (diff <= 15) {
+        finalMessage = feedbackTexts.okay;
+    } else {
+        finalMessage = feedbackTexts.bad;
+    }
+
+    const endText = this.add.text(this.scale.width / 2, this.scale.height / 1.3, finalMessage, {
+      fontSize: "20px", 
+      color: "#ffffff", 
+      backgroundColor: "#000000aa", 
+      padding: { x: 20, y: 15 },
+      align: "center",
+      wordWrap: { width: this.scale.width * 0.7 }
     }).setOrigin(0.5).setDepth(200);
 
+    // Ein Klick und es geht zum Shop
     this.input.on("pointerdown", () => {
-      idx++;
-      if (idx < endLines.length) {
-        endText.setText(endLines[idx]);
-      } else {
         this.scene.start("Shop");
-      }
     });
   }
 }

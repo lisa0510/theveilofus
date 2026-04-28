@@ -53,17 +53,29 @@ export default class Shop extends Phaser.Scene {
 
   startCuttingPhase() {
     const { width, height } = this.scale;
+
+    // Overlay und Brett anzeigen
     this.overlay = this.add.rectangle(width / 2, height / 2, width, height, 0x000000, 0.7).setDepth(100);
     this.boardImg = this.add.image(width / 2, height / 2, "board").setDepth(101).setScale(0.7);
-    this.spawnFish();
+
+    this.spawnFish(false); 
+
+    this.dialogueManager.startDialogue(box1Data.fishIntro, () => {
+      // Erst wenn der Dialog fertig ist, wird die Logik aktiviert
+      this.activateCuttingLogic();
+    });
   }
 
-  spawnFish() {
+  spawnFish(activateLogic = true) {
     const { width, height } = this.scale;
     if (this.fish) this.fish.destroy();
+
     this.fish = this.add.image(width / 2, height / 2, "fish").setDepth(102);
     this.swipeGraphics = this.add.graphics().setDepth(110);
-    this.activateCuttingLogic();
+
+    if (activateLogic) {
+      this.activateCuttingLogic();
+    }
   }
 
   activateCuttingLogic() {
@@ -82,7 +94,7 @@ export default class Shop extends Phaser.Scene {
 
       this.input.once("pointerup", (pointerUp) => {
         this.swipeGraphics.clear();
-        this.input.off("pointermove"); // Cleanup move listener
+        this.input.off("pointermove");
         this.handleSlice(startPoint, { x: pointerUp.x, y: pointerUp.y });
         startPoint = null;
       });
@@ -93,21 +105,18 @@ export default class Shop extends Phaser.Scene {
     const dx = Math.abs(end.x - start.x);
     const dy = Math.abs(end.y - start.y);
 
-    // 1. Winkel-Prüfung: Muss vertikal sein (dx darf maximal 30% von dy sein)
     if (dx > dy * 0.3) {
       this.showInvalidFeedback("Invalid Cut! Cut vertically.");
-      this.activateCuttingLogic(); // Erneut aktivieren, da der Schnitt ungültig war
+      this.activateCuttingLogic();
       return;
     }
 
-    // 2. Längen-Prüfung
     const distance = Phaser.Math.Distance.Between(start.x, start.y, end.x, end.y);
     if (distance < 80) {
       this.activateCuttingLogic();
       return;
     }
 
-    // 3. Kollisions-Prüfung mit dem Fisch
     const bounds = this.fish.getBounds();
     const line = new Phaser.Geom.Line(start.x, start.y, end.x, end.y);
 
@@ -116,7 +125,6 @@ export default class Shop extends Phaser.Scene {
       return;
     }
 
-    // --- Gültiger Schnitt ---
     const cutX = (start.x + end.x) / 2;
     const fishLeft = this.fish.x - this.fish.displayWidth / 2;
     const localX = Phaser.Math.Clamp(cutX - fishLeft, 0, this.fish.displayWidth);
@@ -131,18 +139,11 @@ export default class Shop extends Phaser.Scene {
     if (this.errorText) this.errorText.destroy();
 
     this.errorText = this.add.text(width / 2, height / 2 - 150, message, {
-      fontSize: "30px",
-      color: "#ff0000",
-      fontStyle: "bold",
-      backgroundColor: "#000000aa",
-      padding: { x: 15, y: 10 }
+      fontSize: "30px", color: "#ff0000", fontStyle: "bold", backgroundColor: "#000000aa", padding: { x: 15, y: 10 }
     }).setOrigin(0.5).setDepth(300);
 
     this.tweens.add({
-      targets: this.errorText,
-      alpha: 0,
-      y: "-=30",
-      duration: 1000,
+      targets: this.errorText, alpha: 0, y: "-=30", duration: 1000,
       onComplete: () => { if (this.errorText) this.errorText.destroy(); }
     });
   }
@@ -159,8 +160,7 @@ export default class Shop extends Phaser.Scene {
     let feedback = diff === 0 ? "Perfect!" : diff <= 10 ? "Close!" : "Bad Cut!";
 
     const feedbackText = this.add.text(x, y - 120, `${feedback} ${percent}%`, {
-      fontSize: "35px",
-      color: "#ffff00"
+      fontSize: "35px", color: "#ffff00"
     }).setOrigin(0.5).setDepth(200);
 
     this.tweens.add({ targets: leftHalf, x: x - 250, alpha: 0, duration: 400 });
@@ -177,7 +177,7 @@ export default class Shop extends Phaser.Scene {
   nextFish() {
     this.currentFish++;
     if (this.currentFish < this.totalFish) {
-      this.spawnFish();
+      this.spawnFish(true); // Ab dem zweiten Fisch direkt die Logik aktivieren
     } else {
       this.finishBox();
     }

@@ -1,14 +1,8 @@
 export const box1Data = {
   introDialogue: [
     {
-      text: "Hier ist Box Nummer 1."
+      text: "Da bin ich wieder Doktor, hier ist die erste Box von drei, für Sie."
     },
-    {
-      text: "Vier Fische. Alle exakt halbieren."
-    },
-    {
-      text: "Klick mich an wenn du bereit bist."
-    }
   ],
 
   fishDialogue: [
@@ -16,15 +10,15 @@ export const box1Data = {
       text: "Auf einen erfolgreichen Arbeitstag."
     },
     {
-      text: "Was denkst du über das Schneiden?",
+      text: "Gut gemacht! Zum Glück ist SIE nicht hier, Sie hätte dein Resultat bestimmt schlecht geredet.",
       choices: [
         {
-          text: "Ich gebe mein Bestes.",
-          nextText: "Dann enttäusch mich nicht."
+          text: "Ich hätte SIE fast vergessen.",
+          nextText: "....Oh. Tut mir leid ich hätte dich nicht an SIE erinnern sollen. Ignorier mein geblubbere einfach."
         },
         {
-          text: "Nur Routine.",
-          nextText: "Routine macht Fehler."
+          text: "Stimmt SIE gibt es noch.",
+          nextText: "....Oh. Tut mir leid ich hätte dich nicht an SIE erinnern sollen. Ignorier mein geblubbere einfach."
         }
       ]
     }
@@ -32,7 +26,7 @@ export const box1Data = {
 
   whaleDialogue: [
     {
-      text: "Ein Fehler reicht."
+      text: "Hörst du das, es war ein enttäuschendes Resultat. Habe ich dich nicht besser gelernt?"
     },
     {
       text: "Wie fühlst du dich?",
