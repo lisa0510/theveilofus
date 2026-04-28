@@ -4,29 +4,13 @@ export default class BoxManager {
   }
 
   startBox(boxData) {
-    this.boxData = boxData;
-
-    this.scene.currentFish = 0;
-    this.scene.cutResults = [];
+    this.scene.currentBox = boxData;
 
     this.scene.dialogueManager.startDialogue(
       boxData.introDialogue,
       () => {
-        this.enableCoworkerClick();
+        this.scene.enableCoworkerInteraction();
       }
     );
-  }
-
-  enableCoworkerClick() {
-    this.scene.coworker.setInteractive();
-
-    this.scene.coworker.once("pointerdown", () => {
-      this.scene.dialogueManager.startDialogue(
-        this.boxData.fishDialogue,
-        () => {
-          this.scene.startCuttingPhase();
-        }
-      );
-    });
   }
 }

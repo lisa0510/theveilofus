@@ -1,41 +1,56 @@
 export const box1Data = {
   introDialogue: [
     {
-      text: "Da bin ich wieder Doktor, hier ist die erste Box von drei, für Sie."
+      text: "Da bin ich wieder Doktor. Hier ist die erste Box von drei."
     },
+    {
+      text: "Bitte kümmern Sie sich darum."
+    }
   ],
 
   fishDialogue: [
     {
-      text: "Auf einen erfolgreichen Arbeitstag."
-    },
-    {
-      text: "Gut gemacht! Zum Glück ist SIE nicht hier, Sie hätte dein Resultat bestimmt schlecht geredet.",
+      text: "Zum Glück ist SIE nicht hier.",
       choices: [
         {
+          id: "remember_her",
           text: "Ich hätte SIE fast vergessen.",
-          nextText: "....Oh. Tut mir leid ich hätte dich nicht an SIE erinnern sollen. Ignorier mein geblubbere einfach."
+          nextText:
+            "....Oh. Tut mir leid. Ich hätte dich nicht erinnern sollen."
         },
         {
-          text: "Stimmt SIE gibt es noch.",
-          nextText: "....Oh. Tut mir leid ich hätte dich nicht an SIE erinnern sollen. Ignorier mein geblubbere einfach."
+          id: "she_exists",
+          text: "Stimmt. SIE gibt es noch.",
+          nextText:
+            "....Oh. Tut mir leid. Ignorier mein Geblubber."
         }
       ]
     }
   ],
 
+  successDialogue: [
+    {
+      text: "Oh good."
+    },
+    {
+      text: "Box 2 wartet bereits."
+    }
+  ],
+
   whaleDialogue: [
     {
-      text: "Hörst du das, es war ein enttäuschendes Resultat. Habe ich dich nicht besser gelernt?"
+      text: "Hörst du das? Das war enttäuschend."
     },
     {
       text: "Wie fühlst du dich?",
       choices: [
         {
+          id: "learned",
           text: "Ich lerne daraus.",
           nextText: "Gut."
         },
         {
+          id: "dontcare",
           text: "War mir egal.",
           nextText: "Das sehe ich."
         }

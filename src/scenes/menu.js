@@ -63,7 +63,7 @@ export default class Menu extends Phaser.Scene {
         const { width, height } = this.scale;
 
         // 1. Full-Screen Background
-        this.popupOverlay = this.add.rectangle(0, 0, width, height, 0x000000, 0.95)
+        this.popupOverlay = this.add.rectangle(0, 0, width, height, 0x000000, 1)
             .setOrigin(0)
             .setInteractive()
             .setDepth(100);
