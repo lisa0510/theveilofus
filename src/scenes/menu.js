@@ -42,7 +42,7 @@ export default class Menu extends Phaser.Scene {
 
         startButton.on('pointerover', () => startButton.setStyle({ fill: '#ff0' }));
         startButton.on('pointerout', () => startButton.setStyle({ fill: '#fff' }));
-        startButton.on('pointerdown', () => this.scene.start('Shop'));
+        startButton.on('pointerdown', () => this.scene.start('Tutorial'));
 
         let creditsButton = this.add.text(width / 10, height / 1.7, 'Credits', { 
             fontSize: '50px', 

@@ -30,6 +30,7 @@ export default class Tutorial extends Phaser.Scene {
 
     this.dialogueIndex = 0;
     this.cuts = [];
+    this.bubbles = []; 
     this.targetCM = 50;
     this.totalFish = 4;
     this.currentFish = 0;
@@ -37,27 +38,17 @@ export default class Tutorial extends Phaser.Scene {
     this.setupMainDialogue();
   }
 
-  // --- DIALOG LOGIK ---
   setupMainDialogue() {
     const { width, height } = this.scale;
     this.currentDialogues = dialogues.tutorial.intro;
-
     this.dialogueText = this.add.text(width / 2, height / 1.3, "", {
-      fontSize: "22px",
-      color: "#ffffff",
-      backgroundColor: "#000000aa",
-      padding: { x: 20, y: 15 },
-      align: "center",
-      wordWrap: { width: width * 0.6 }
+      fontSize: "22px", color: "#ffffff", backgroundColor: "#000000aa", padding: { x: 20, y: 15 }, align: "center", wordWrap: { width: width * 0.6 }
     }).setOrigin(0.5).setDepth(200);
-
     this.input.on("pointerdown", this.handleProgressDialogue, this);
     this.displayNextLine();
   }
 
-  handleProgressDialogue() {
-    this.displayNextLine();
-  }
+  handleProgressDialogue() { this.displayNextLine(); }
 
   displayNextLine() {
     if (this.dialogueIndex < this.currentDialogues.length) {
@@ -70,12 +61,10 @@ export default class Tutorial extends Phaser.Scene {
     }
   }
 
-  // --- SCHNEIDE LOGIK ---
   startTutorialCutting() {
     const { width, height } = this.scale;
     this.overlay = this.add.rectangle(width / 2, height / 2, width, height, 0x000000, 0.7).setDepth(100);
     this.boardImg = this.add.image(width / 2, height / 2, "board").setDepth(101).setScale(0.7);
-
     this.spawnFish();
     this.startFishDialogue();
   }
@@ -84,18 +73,14 @@ export default class Tutorial extends Phaser.Scene {
     const { width, height } = this.scale;
     this.fishDialogues = dialogues.tutorial.fishIntro;
     this.fishDialogueIndex = 0;
-
     this.fishText = this.add.text(width / 2, height / 1.3, "", {
       fontSize: "20px", color: "#ffffff", backgroundColor: "#000000aa", padding: { x: 20, y: 10 }, align: "center", wordWrap: { width: width * 0.5 }
     }).setOrigin(0.5).setDepth(150);
-
     this.input.on("pointerdown", this.handleProgressFishDialogue, this);
     this.displayNextFishLine();
   }
 
-  handleProgressFishDialogue() {
-    this.displayNextFishLine();
-  }
+  handleProgressFishDialogue() { this.displayNextFishLine(); }
 
   displayNextFishLine() {
     if (this.fishDialogueIndex < this.fishDialogues.length) {
@@ -117,10 +102,10 @@ export default class Tutorial extends Phaser.Scene {
 
   activateCuttingLogic() {
     let startPoint = null;
-    this.input.on("pointerdown", (pointer) => {
+    this.input.on("pointerdown", (pointer, gameObjects) => {
+      if (gameObjects.length > 0) return;
       startPoint = { x: pointer.x, y: pointer.y };
     });
-
     this.input.on("pointermove", (pointer) => {
       if (pointer.isDown && startPoint) {
         this.swipeGraphics.clear();
@@ -128,7 +113,6 @@ export default class Tutorial extends Phaser.Scene {
         this.swipeGraphics.lineBetween(startPoint.x, startPoint.y, pointer.x, pointer.y);
       }
     });
-
     this.input.on("pointerup", (pointer) => {
       if (startPoint) {
         this.handleSlice(startPoint, { x: pointer.x, y: pointer.y });
@@ -141,22 +125,14 @@ export default class Tutorial extends Phaser.Scene {
   handleSlice(start, end) {
     const dx = Math.abs(end.x - start.x);
     const dy = Math.abs(end.y - start.y);
-
-    // Strenger vertikaler Winkel (0.3)
-    if (dx > dy * 0.3) { 
-      this.showInvalidFeedback("Invalid Cut! Cut vertically.");
-      return;
-    }
-
+    if (dx > dy * 0.3) { this.showInvalidFeedback("Invalid Cut! Cut vertically."); return; }
     const distance = Phaser.Math.Distance.Between(start.x, start.y, end.x, end.y);
     if (distance < 80) return;
-
     const bounds = this.fish.getBounds();
     const line = new Phaser.Geom.Line(start.x, start.y, end.x, end.y);
     if (!Phaser.Geom.Intersects.LineToRectangle(line, bounds)) return;
 
     this.input.removeAllListeners();
-
     const cutX = (start.x + end.x) / 2;
     const fishLeft = this.fish.x - this.fish.displayWidth / 2;
     const localX = Phaser.Math.Clamp(cutX - fishLeft, 0, this.fish.displayWidth);
@@ -164,6 +140,76 @@ export default class Tutorial extends Phaser.Scene {
 
     this.cuts.push(percent);
     this.animateSlice(localX, percent);
+  }
+
+  animateSlice(localX, percent) {
+    const { x, y, displayWidth: w, displayHeight: h } = this.fish;
+    const leftHalf = this.add.image(x, y, "fish").setDisplaySize(w, h).setCrop(0, 0, localX, h).setDepth(102);
+    const rightHalf = this.add.image(x, y, "fish").setDisplaySize(w, h).setCrop(localX, 0, w - localX, h).setDepth(102);
+    this.fish.destroy();
+
+    const diff = Math.abs(percent - 50);
+    let rating = "";
+    let bubbleColor = 0x33FBFF; // Standard Cyan (für Perfect & OK)
+
+    if (diff <= 10) {
+        rating = diff <= 2 ? "PERFECT" : "OK";
+        bubbleColor = 0x33FBFF; 
+    } else {
+        rating = "BAD";
+        bubbleColor = 0xFF9999; // Wasser-Rot
+    }
+
+    this.createDraggableBubble(x, y - 50, rating, bubbleColor);
+
+    this.tweens.add({ targets: leftHalf, x: x - 250, alpha: 0, duration: 350 });
+    this.tweens.add({ targets: rightHalf, x: x + 250, alpha: 0, duration: 350 });
+
+    this.time.delayedCall(450, () => {
+      leftHalf.destroy();
+      rightHalf.destroy();
+      this.nextFish();
+    });
+  }
+
+  createDraggableBubble(x, y, label, color) {
+    const container = this.add.container(x, y).setDepth(150);
+    const radius = 90;
+
+    const bg = this.add.graphics();
+    bg.fillStyle(color, 0.7); 
+    bg.fillCircle(0, 0, radius);
+    bg.lineStyle(3, 0xffffff, 0.8);
+    bg.strokeCircle(0, 0, radius);
+
+    // Weißer Glanz-Effekt für den Bubble-Look
+    bg.fillStyle(0xffffff, 0.3);
+    bg.fillEllipse(-30, -30, 20, 15);
+
+    const txt = this.add.text(0, 0, label, {
+      fontSize: "24px", color: "#000000", fontStyle: "bold", fontFamily: "Helvetica"
+    }).setOrigin(0.5);
+
+    container.add([bg, txt]);
+
+    // Klick-Bereich auf vollen Radius (90) setzen
+    bg.setInteractive(new Phaser.Geom.Circle(0, 0, radius), Phaser.Geom.Circle.Contains);
+    this.input.setDraggable(bg);
+
+    bg.on('dragstart', (pointer) => {
+        container.setScale(1.1);
+        bg.dragOffsetX = container.x - pointer.x;
+        bg.dragOffsetY = container.y - pointer.y;
+    });
+
+    bg.on('drag', (pointer) => {
+        container.x = pointer.x + bg.dragOffsetX;
+        container.y = pointer.y + bg.dragOffsetY;
+    });
+
+    bg.on('dragend', () => { container.setScale(1.0); });
+
+    this.bubbles.push(container);
   }
 
   showInvalidFeedback(message) {
@@ -175,27 +221,6 @@ export default class Tutorial extends Phaser.Scene {
     this.tweens.add({
       targets: this.errorText, alpha: 0, y: "-=30", duration: 1000,
       onComplete: () => { if (this.errorText) this.errorText.destroy(); }
-    });
-  }
-
-  animateSlice(localX, percent) {
-    const { x, y, displayWidth: w, displayHeight: h } = this.fish;
-    const leftHalf = this.add.image(x, y, "fish").setDisplaySize(w, h).setCrop(0, 0, localX, h).setDepth(102);
-    const rightHalf = this.add.image(x, y, "fish").setDisplaySize(w, h).setCrop(localX, 0, w - localX, h).setDepth(102);
-    this.fish.destroy();
-
-    const feedbackText = this.add.text(x, y - 120, `${percent}%`, {
-      fontSize: "40px", color: "#ffff00", fontStyle: "bold"
-    }).setOrigin(0.5).setDepth(200);
-
-    this.tweens.add({ targets: leftHalf, x: x - 250, alpha: 0, duration: 350 });
-    this.tweens.add({ targets: rightHalf, x: x + 250, alpha: 0, duration: 350 });
-
-    this.time.delayedCall(450, () => {
-      feedbackText.destroy();
-      leftHalf.destroy();
-      rightHalf.destroy();
-      this.nextFish();
     });
   }
 
@@ -212,35 +237,17 @@ export default class Tutorial extends Phaser.Scene {
   finishTutorial() {
     if (this.overlay) this.overlay.destroy();
     if (this.boardImg) this.boardImg.destroy();
+    this.bubbles.forEach(b => b.destroy());
 
-    // Durchschnitt der Schnitte berechnen
     const averagePercent = this.cuts.reduce((a, b) => a + b, 0) / this.cuts.length;
     const diff = Math.abs(averagePercent - this.targetCM);
 
-    // Text aus der dialogues.js laden
-    let finalMessage = "";
-    const feedbackTexts = dialogues.tutorial.feedback;
+    let finalMessage = dialogues.tutorial.feedback[diff <= 2 ? 'perfect' : diff <= 15 ? 'okay' : 'bad'];
 
-    if (diff <= 2) {
-        finalMessage = feedbackTexts.perfect;
-    } else if (diff <= 15) {
-        finalMessage = feedbackTexts.okay;
-    } else {
-        finalMessage = feedbackTexts.bad;
-    }
-
-    const endText = this.add.text(this.scale.width / 2, this.scale.height / 1.3, finalMessage, {
-      fontSize: "20px", 
-      color: "#ffffff", 
-      backgroundColor: "#000000aa", 
-      padding: { x: 20, y: 15 },
-      align: "center",
-      wordWrap: { width: this.scale.width * 0.7 }
+    this.add.text(this.scale.width / 2, this.scale.height / 1.3, finalMessage, {
+      fontSize: "20px", color: "#ffffff", backgroundColor: "#000000aa", padding: { x: 20, y: 15 }, align: "center", wordWrap: { width: this.scale.width * 0.7 }
     }).setOrigin(0.5).setDepth(200);
 
-    // Ein Klick und es geht zum Shop
-    this.input.on("pointerdown", () => {
-        this.scene.start("Shop");
-    });
+    this.input.on("pointerdown", () => { this.scene.start("Shop"); });
   }
 }

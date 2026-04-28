@@ -8,7 +8,7 @@ import Tutorial from "./scenes/tutorial.js";
 const config = {
   type: Phaser.AUTO,
   parent: "app",
-  scene: [Shop,Tutorial,Menu],
+  scene: [Menu,Tutorial,Shop],
   scale: {
     mode: Phaser.Scale.FIT,
     autoCenter: Phaser.Scale.CENTER_BOTH,
