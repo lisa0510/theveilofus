@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import dialogues from "../data/dialogues_tutorial.js";
 
 export default class Tutorial extends Phaser.Scene {
   constructor() {
@@ -24,6 +25,7 @@ export default class Tutorial extends Phaser.Scene {
     this.add.image(width / 2, height / 1, "tisch").setScale(1.2).setDepth(-1);
     this.add.image(width / 2, height / 1.1, "cutting").setScale(0.7);
     this.add.image(width / 1.5, height / 1.1, "knive").setScale(0.15);
+
     this.coworker = this.add.image(width / 2, height / 1.8, "customer").setScale(0.6);
 
     this.dialogueIndex = 0;
@@ -35,84 +37,74 @@ export default class Tutorial extends Phaser.Scene {
     this.setupMainDialogue();
   }
 
+  // --- DIALOG LOGIK ---
   setupMainDialogue() {
     const { width, height } = this.scale;
-    this.dialogues = [
-      "Guten Morgen Dr. Hier ist der erste Test Spezimen für Sie zum schneiden.",
-      "Wenn Sie diesen probe Fisch geschnitten haben, bringe ich Ihnen die Boxen für den heutigen Arbeitstag.",
-      "Merken Sie, die Forschungsabteilung hat darum gebeten, das alle Spezimen heute bei ungefähr 50% durchgeschnitten werden müssen.",
-      "Geben Sie ihr bestes!"
-    ];
+    this.currentDialogues = dialogues.tutorial.intro;
 
     this.dialogueText = this.add.text(width / 2, height / 1.3, "", {
-      fontSize: "20px", color: "#ffffff", backgroundColor: "#000000aa",
-      padding: { x: 20, y: 10 }, align: "center",
-      wordWrap: { width: width * 0.5, useAdvancedWrap: true }
-    }).setOrigin(0.5);
+      fontSize: "22px",
+      color: "#ffffff",
+      backgroundColor: "#000000aa",
+      padding: { x: 20, y: 15 },
+      align: "center",
+      wordWrap: { width: width * 0.6 }
+    }).setOrigin(0.5).setDepth(200);
 
-    this.continueBtn = this.add.text(width / 2, height / 1.2, "...", {
-      fontSize: "20px", backgroundColor: "#333", color: "#fff", padding: { x: 20, y: 10 }
-    }).setOrigin(0.5).setInteractive({ useHandCursor: true });
-
-    this.continueBtn.on("pointerdown", () => this.nextDialogue());
-    this.nextDialogue();
+    this.input.on("pointerdown", this.handleProgressDialogue, this);
+    this.displayNextLine();
   }
 
-  nextDialogue() {
-    if (this.dialogueIndex < this.dialogues.length) {
-      this.dialogueText.setText(this.dialogues[this.dialogueIndex]);
+  handleProgressDialogue() {
+    this.displayNextLine();
+  }
+
+  displayNextLine() {
+    if (this.dialogueIndex < this.currentDialogues.length) {
+      this.dialogueText.setText(this.currentDialogues[this.dialogueIndex].text);
       this.dialogueIndex++;
     } else {
+      this.input.off("pointerdown", this.handleProgressDialogue, this);
       this.dialogueText.destroy();
-      this.continueBtn.destroy();
       this.startTutorialCutting();
     }
   }
 
- startTutorialCutting() {
+  // --- SCHNEIDE LOGIK ---
+  startTutorialCutting() {
     const { width, height } = this.scale;
-    
     this.overlay = this.add.rectangle(width / 2, height / 2, width, height, 0x000000, 0.7).setDepth(100);
     this.boardImg = this.add.image(width / 2, height / 2, "board").setDepth(101).setScale(0.7);
-    
+
     this.spawnFish();
     this.startFishDialogue();
   }
 
   startFishDialogue() {
     const { width, height } = this.scale;
-    this.fishDialogues = [
-      "Auf einen erfolgreichen Arbeitstag, Mensch!",
-      "Vergiss nicht, auch der erfahrenste Fisch kann sich im Netzt verfangen.",
-      "Dieser probiert, dann den selben Miss-schwimm einfach nicht nochmals zu machen.",
-      "Ziehen Sie die Maus schnell vertikal durch den Fisch.",
-    ];
+    this.fishDialogues = dialogues.tutorial.fishIntro;
     this.fishDialogueIndex = 0;
 
     this.fishText = this.add.text(width / 2, height / 1.3, "", {
-      fontSize: "20px", color: "#ffffff", backgroundColor: "#000000aa",
-      padding: { x: 20, y: 10 }, align: "center",
-      wordWrap: { width: width * 0.5, useAdvancedWrap: true }
+      fontSize: "20px", color: "#ffffff", backgroundColor: "#000000aa", padding: { x: 20, y: 10 }, align: "center", wordWrap: { width: width * 0.5 }
     }).setOrigin(0.5).setDepth(150);
 
-    this.fishBtn = this.add.text(width / 2, height / 1.2, "...", {
-      fontSize: "20px", backgroundColor: "#333", color: "#fff", padding: { x: 20, y: 10 }
-    }).setOrigin(0.5).setInteractive({ useHandCursor: true }).setDepth(150);
-
-    this.fishBtn.on("pointerdown", () => this.nextFishDialogue());
-    this.nextFishDialogue();
+    this.input.on("pointerdown", this.handleProgressFishDialogue, this);
+    this.displayNextFishLine();
   }
 
-  nextFishDialogue() {
+  handleProgressFishDialogue() {
+    this.displayNextFishLine();
+  }
+
+  displayNextFishLine() {
     if (this.fishDialogueIndex < this.fishDialogues.length) {
-      this.fishText.setText(this.fishDialogues[this.fishDialogueIndex]);
+      this.fishText.setText(this.fishDialogues[this.fishDialogueIndex].text);
       this.fishDialogueIndex++;
     } else {
+      this.input.off("pointerdown", this.handleProgressFishDialogue, this);
       this.fishText.destroy();
-      this.fishBtn.destroy();
-      this.time.delayedCall(100, () => {
-        this.activateCuttingLogic();
-      });
+      this.time.delayedCall(100, () => { this.activateCuttingLogic(); });
     }
   }
 
@@ -126,120 +118,97 @@ export default class Tutorial extends Phaser.Scene {
   activateCuttingLogic() {
     let startPoint = null;
 
-    this.input.on('pointerdown', (pointer) => {
+    // Hier wurde die Prüfung (bounds.contains) entfernt:
+    this.input.on("pointerdown", (pointer) => {
       startPoint = { x: pointer.x, y: pointer.y };
     });
 
-    this.input.on('pointermove', (pointer) => {
+    this.input.on("pointermove", (pointer) => {
       if (pointer.isDown && startPoint) {
         this.swipeGraphics.clear();
         this.swipeGraphics.lineStyle(5, 0xffffff, 1);
         this.swipeGraphics.lineBetween(startPoint.x, startPoint.y, pointer.x, pointer.y);
-        
-        this.time.delayedCall(100, () => {
-          this.swipeGraphics.clear();
-        });
       }
     });
 
-    this.input.on('pointerup', (pointer) => {
+    this.input.on("pointerup", (pointer) => {
       if (startPoint) {
         this.handleSlice(startPoint, { x: pointer.x, y: pointer.y });
         startPoint = null;
-        this.swipeGraphics.clear(); // Sofort weg beim Loslassen
+        this.swipeGraphics.clear();
       }
     });
   }
 
-  handleSlice(start, end) {
+ handleSlice(start, end) {
+    const dx = Math.abs(end.x - start.x);
+    const dy = Math.abs(end.y - start.y);
+
+    // 1. Prüfung: Ist der Schnitt vorwiegend vertikal?
+    // dy muss jetzt größer sein als dx. 
+    // Durch den Multiplikator (z.B. 1.5) erzwingen wir einen steilen Winkel.
+    if (dx > dy * 0.4) { 
+      this.showInvalidFeedback("Invalid Cut! Cut vertically.");
+      return;
+    }
+
+    // 2. Prüfung: Ist der Schnitt lang genug?
     const distance = Phaser.Math.Distance.Between(start.x, start.y, end.x, end.y);
-    
-    // 1. Prüfung: Lange genug?
-    if (distance < 150) return;
+    if (distance < 80) return; // Etwas kürzer für vertikale Schnitte
 
     const bounds = this.fish.getBounds();
     const line = new Phaser.Geom.Line(start.x, start.y, end.x, end.y);
 
-    // 2. Prüfung: Fisch getroffen?
+    // 3. Prüfung: Trifft die Linie den Fisch?
     if (!Phaser.Geom.Intersects.LineToRectangle(line, bounds)) return;
 
-    // 3. Prüfung: Vertikal vs. Horizontal
-    const angle = Phaser.Math.Angle.Between(start.x, start.y, end.x, end.y);
-    const angleInDegrees = Math.abs(Phaser.Math.RadToDeg(angle));
+    // --- Gültiger vertikaler Schnitt ---
+    this.input.removeAllListeners();
 
-    // Wir definieren: Ein gültiger Schnitt muss steil sein (zwischen 45° und 135°)
-    // Wenn der Winkel nahe 0 oder 180 ist, ist er zu horizontal.
-    const isHorizontal = (angleInDegrees < 60 || angleInDegrees > 130);
-
-    if (isHorizontal) {
-      this.showErrorMessage("Not a valid cut!");
-      return;
-    }
-
-    // Wenn alles okay ist, Schnitt ausführen
-    this.input.off('pointerdown');
-    this.input.off('pointermove');
-    this.input.off('pointerup');
-
+    // Wir nehmen den Durchschnitt der X-Werte für die Position des Schnitts
     const cutX = (start.x + end.x) / 2;
     const fishLeft = this.fish.x - this.fish.displayWidth / 2;
     const localX = Phaser.Math.Clamp(cutX - fishLeft, 0, this.fish.displayWidth);
     const percent = Math.round((localX / this.fish.displayWidth) * 100);
 
     this.cuts.push(percent);
-    this.animateSlice(localX, percent, angle);
+    this.animateSlice(localX, percent);
   }
-  showErrorMessage(message) {
+
+  showInvalidFeedback(message) {
     const { width, height } = this.scale;
-    const errorText = this.add.text(width / 2, height / 2, message, {
-      fontSize: "42px",
+    if (this.errorText) this.errorText.destroy();
+
+    this.errorText = this.add.text(width / 2, height / 2 - 150, message, {
+      fontSize: "28px",
       color: "#ff0000",
       fontStyle: "bold",
       backgroundColor: "#000000aa",
-      padding: { x: 20, y: 10 }
-    }).setOrigin(0.5).setDepth(3000);
+      padding: { x: 15, y: 10 }
+    }).setOrigin(0.5).setDepth(300);
 
     this.tweens.add({
-      targets: errorText,
-      alpha: { from: 1, to: 0 },
-      y: errorText.y - 50,
+      targets: this.errorText,
+      alpha: 0,
+      y: "-=30",
       duration: 1000,
-      delay: 500,
-      onComplete: () => errorText.destroy()
+      onComplete: () => { if (this.errorText) this.errorText.destroy(); }
     });
   }
 
-  animateSlice(localX, percent, angle) {
+  animateSlice(localX, percent) {
     const { x, y, displayWidth: w, displayHeight: h } = this.fish;
-
     const leftHalf = this.add.image(x, y, "fish").setDisplaySize(w, h).setCrop(0, 0, localX, h).setDepth(102);
     const rightHalf = this.add.image(x, y, "fish").setDisplaySize(w, h).setCrop(localX, 0, w - localX, h).setDepth(102);
 
     this.fish.destroy();
 
-    const diff = Math.abs(percent - 50);
-    let feedback = diff <= 5 ? `Perfect! ${percent}%` : (diff <= 15 ? `Close! ${percent}%` : `Off! ${percent}%`);
-    const feedbackText = this.add.text(x, y - 120, feedback, {
+    const feedbackText = this.add.text(x, y - 120, `${percent}%`, {
       fontSize: "40px", color: "#ffff00", fontStyle: "bold"
     }).setOrigin(0.5).setDepth(200);
 
-    const slideDist = 250; 
-    
-    this.tweens.add({
-      targets: leftHalf,
-      x: x - slideDist,
-      alpha: 0,
-      duration: 350, 
-      ease: 'Power2'
-    });
-
-    this.tweens.add({
-      targets: rightHalf,
-      x: x + slideDist,
-      alpha: 0,
-      duration: 350, 
-      ease: 'Power2'
-    });
+    this.tweens.add({ targets: leftHalf, x: x - 250, alpha: 0, duration: 350 });
+    this.tweens.add({ targets: rightHalf, x: x + 250, alpha: 0, duration: 350 });
 
     this.time.delayedCall(450, () => {
       feedbackText.destroy();
@@ -262,30 +231,24 @@ export default class Tutorial extends Phaser.Scene {
   finishTutorial() {
     if (this.overlay) this.overlay.destroy();
     if (this.boardImg) this.boardImg.destroy();
-    this.input.removeAllListeners();
 
     const average = this.cuts.reduce((a, b) => a + b, 0) / this.cuts.length;
     const diff = Math.abs(average - this.targetCM);
 
-    let endLines = diff <= 10 
-      ? ["Perfekt vielen Dank, lassen Sie mich diese weiterleiten."]
-      : ["Übung macht den Meister.", "Versuchen Sie es beim nächsten Mal besser."];
-
+    let endLines = diff <= 10 ? ["Perfekt vielen Dank."] : ["Der erste Versuch ist immer schwierig."];
     let idx = 0;
+
     const endText = this.add.text(this.scale.width / 2, this.scale.height / 1.3, endLines[0], {
-      fontSize: "20px", color: "#ffffff", backgroundColor: "#000000aa",
-      padding: { x: 20, y: 10 }, align: "center",
-      wordWrap: { width: this.scale.width * 0.5, useAdvancedWrap: true }
+      fontSize: "20px", color: "#ffffff", backgroundColor: "#000000aa", padding: { x: 20, y: 10 }
     }).setOrigin(0.5).setDepth(200);
 
-    const endBtn = this.add.text(this.scale.width / 2, this.scale.height / 1.2, "...", {
-      fontSize: "20px", backgroundColor: "#333", color: "#fff", padding: { x: 20, y: 10 }
-    }).setOrigin(0.5).setInteractive({ useHandCursor: true }).setDepth(200);
-
-    endBtn.on("pointerdown", () => {
+    this.input.on("pointerdown", () => {
       idx++;
-      if (idx < endLines.length) endText.setText(endLines[idx]);
-      else this.scene.start("Shop");
+      if (idx < endLines.length) {
+        endText.setText(endLines[idx]);
+      } else {
+        this.scene.start("Shop");
+      }
     });
   }
 }
