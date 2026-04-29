@@ -56,6 +56,7 @@ export default class Shop extends Phaser.Scene {
     this.currentFish = 0;
     this.cutResults = [];
     this.choiceButtons = [];
+    this.feedbackBubbles = [];
 
     gameState.reset();
 
@@ -211,82 +212,142 @@ export default class Shop extends Phaser.Scene {
   }
 
   activateCuttingLogic() {
-    let startPoint = null;
+  let startPoint = null;
 
-    this.input.once("pointerdown", (pointer) => {
-      startPoint = {
-        x: pointer.x,
-        y: pointer.y
-      };
-
-      const drawSwipe = (movePointer) => {
-        if (movePointer.isDown && startPoint) {
-          this.swipeGraphics.clear();
-          this.swipeGraphics.lineStyle(5, 0xffffff, 1);
-          this.swipeGraphics.lineBetween(
-            startPoint.x,
-            startPoint.y,
-            movePointer.x,
-            movePointer.y
-          );
-        }
-      };
-
-      this.input.on("pointermove", drawSwipe);
-
-      this.input.once("pointerup", (pointerUp) => {
-        this.swipeGraphics.clear();
-        this.input.off("pointermove", drawSwipe);
-
-        this.handleSlice(
-          startPoint,
-          {
-            x: pointerUp.x,
-            y: pointerUp.y
-          }
-        );
-      });
-    });
-  }
-
-  handleSlice(start, end) {
-    const bounds = this.fish.getBounds();
-
-    const line = new Phaser.Geom.Line(
-      start.x,
-      start.y,
-      end.x,
-      end.y
-    );
-
-    const hitFish = Phaser.Geom.Intersects.LineToRectangle(
-      line,
-      bounds
-    );
-
-    if (!hitFish) {
+  this.input.once("pointerdown", (pointer, gameObjects) => {
+    if (gameObjects.length > 0) {
       this.activateCuttingLogic();
       return;
     }
 
-    const cutX = (start.x + end.x) / 2;
-    const fishLeft = this.fish.x - this.fish.displayWidth / 2;
+    startPoint = {
+      x: pointer.x,
+      y: pointer.y
+    };
 
-    const localX = Phaser.Math.Clamp(
-      cutX - fishLeft,
-      0,
-      this.fish.displayWidth
-    );
+    const drawSwipe = (movePointer) => {
+      if (movePointer.isDown && startPoint) {
+        this.swipeGraphics.clear();
+        this.swipeGraphics.lineStyle(5, 0xffffff, 1);
+        this.swipeGraphics.lineBetween(
+          startPoint.x,
+          startPoint.y,
+          movePointer.x,
+          movePointer.y
+        );
+      }
+    };
 
-    const percent = Math.round(
-      (localX / this.fish.displayWidth) * 100
-    );
+    this.input.on("pointermove", drawSwipe);
 
-    this.cutResults.push(percent);
-    gameState.saveCut(this.currentBoxId, percent);
+    this.input.once("pointerup", (pointerUp) => {
+      this.swipeGraphics.clear();
+      this.input.off("pointermove", drawSwipe);
 
-    this.animateSlice(localX, percent);
+      this.handleSlice(
+        startPoint,
+        {
+          x: pointerUp.x,
+          y: pointerUp.y
+        }
+      );
+    });
+  });
+}
+  
+  handleSlice(start, end) {
+  const bounds = this.fish.getBounds();
+
+  const dx = end.x - start.x;
+  const dy = end.y - start.y;
+
+  const distance = Phaser.Math.Distance.Between(
+    start.x,
+    start.y,
+    end.x,
+    end.y
+  );
+
+  if (distance < 120) {
+    this.showCutError("Zu kurz!");
+    this.activateCuttingLogic();
+    return;
   }
+
+  const verticalEnough = Math.abs(dy) > Math.abs(dx) * 2;
+
+  if (!verticalEnough) {
+    this.showCutError("Nur vertikal schneiden!");
+    this.activateCuttingLogic();
+    return;
+  }
+
+  const line = new Phaser.Geom.Line(
+    start.x,
+    start.y,
+    end.x,
+    end.y
+  );
+
+  const hitFish = Phaser.Geom.Intersects.LineToRectangle(
+    line,
+    bounds
+  );
+
+  if (!hitFish) {
+    this.showCutError("Daneben!");
+    this.activateCuttingLogic();
+    return;
+  }
+
+  const cutX = (start.x + end.x) / 2;
+  const fishLeft = this.fish.x - this.fish.displayWidth / 2;
+
+  const localX = Phaser.Math.Clamp(
+    cutX - fishLeft,
+    0,
+    this.fish.displayWidth
+  );
+
+  const percent = Math.round(
+    (localX / this.fish.displayWidth) * 100
+  );
+
+  this.cutResults.push(percent);
+  gameState.saveCut(this.currentBoxId, percent);
+
+  this.animateSlice(localX, percent);
+}
+
+showCutError(message = "") {
+  const { width, height } = this.scale;
+
+  const errorText = this.add.text(
+    width / 2,
+    height * 0.25,
+    message,
+    {
+      fontSize: "30px",
+      color: "#ff4444",
+      fontStyle: "bold"
+    }
+  )
+    .setOrigin(0.5)
+    .setDepth(800);
+
+  errorText.setAlpha(0);
+
+  this.tweens.add({
+    targets: errorText,
+    alpha: 1,
+    duration: 150,
+    yoyo: true,
+    hold: 500,
+    onComplete: () => {
+      errorText.destroy();
+    }
+  });
+}
 
   animateSlice(localX, percent) {
     const {
@@ -308,17 +369,7 @@ export default class Shop extends Phaser.Scene {
 
     this.fish.destroy();
 
-    const feedback = this.add.text(
-      x,
-      y - 120,
-      `${percent}%`,
-      {
-        fontSize: "35px",
-        color: "#ffff00"
-      }
-    )
-      .setOrigin(0.5)
-      .setDepth(300);
+    this.createFeedbackBubble(percent);
 
     this.tweens.add({
       targets: leftHalf,
@@ -337,10 +388,111 @@ export default class Shop extends Phaser.Scene {
     this.time.delayedCall(500, () => {
       leftHalf.destroy();
       rightHalf.destroy();
-      feedback.destroy();
 
       this.nextFish();
     });
+  }
+
+  createFeedbackBubble(percent) {
+  const { width, height } = this.scale;
+
+  let label = "Schlecht";
+  let color = 0x8b1a1a;
+
+  if (percent === 50) {
+    label = "Perfect";
+    color = 0x2ecc71;
+  } else if (percent >= 45 && percent <= 55) {
+    label = "OK";
+    color = 0xf1c40f;
+  }
+
+  const bubbleRadius = 90;
+  const bubbleSize = bubbleRadius * 2;
+
+  const x = width * 0.32 + this.feedbackBubbles.length * 140;
+  const y = height * 0.48;
+
+  const bubble = this.add.container(x, y).setDepth(700);
+
+  const circle = this.add.circle(
+    0,
+    0,
+    bubbleRadius,
+    color,
+    0.85
+  );
+
+  const text = this.add.text(0, 0, label, {
+    fontSize: "26px",
+    color: "#ffffff",
+    align: "center"
+  }).setOrigin(0.5);
+
+  bubble.add([circle, text]);
+
+  bubble.setSize(bubbleSize, bubbleSize);
+
+  bubble.setInteractive(
+    new Phaser.Geom.Circle(
+      bubbleRadius,
+      bubbleRadius,
+      bubbleRadius
+    ),
+    Phaser.Geom.Circle.Contains
+  );
+
+  this.input.setDraggable(bubble);
+
+  bubble.on("drag", (pointer, dragX, dragY) => {
+    bubble.x = dragX;
+    bubble.y = dragY;
+  });
+
+  bubble.setScale(0);
+
+  this.tweens.add({
+    targets: bubble,
+    scale: 1,
+    duration: 300,
+    ease: "Back.Out",
+    onComplete: () => {
+      this.tweens.add({
+        targets: bubble,
+        y: bubble.y - Phaser.Math.Between(30, 340),
+        duration: Phaser.Math.Between(4000, 7000),
+        ease: "Sine.Out"
+      });
+
+      this.tweens.add({
+        targets: bubble,
+        x: bubble.x + Phaser.Math.Between(-50, 70),
+        duration: Phaser.Math.Between(1200, 2000),
+        ease: "Sine.InOut",
+        yoyo: true,
+        repeat: -1
+      });
+
+      this.tweens.add({
+        targets: bubble,
+        scale: 1.05,
+        duration: 1200,
+        ease: "Sine.InOut",
+        yoyo: true,
+        repeat: -1
+      });
+    }
+  });
+
+  this.feedbackBubbles.push(bubble);
+}
+
+  clearFeedbackBubbles() {
+    this.feedbackBubbles.forEach((bubble) => {
+      bubble.destroy();
+    });
+
+    this.feedbackBubbles = [];
   }
 
   nextFish() {
@@ -357,6 +509,8 @@ export default class Shop extends Phaser.Scene {
     if (this.overlay) this.overlay.destroy();
     if (this.boardImg) this.boardImg.destroy();
     if (this.swipeGraphics) this.swipeGraphics.destroy();
+
+    this.clearFeedbackBubbles();
 
     const perfect = gameState.isPerfectBox(this.currentBoxId);
 
@@ -401,7 +555,6 @@ export default class Shop extends Phaser.Scene {
             this.showChoices(
               parasiteNode.choices,
 
-              // Player chooses
               (choice) => {
                 gameState.saveParasiteChoice(
                   this.currentBoxId,
@@ -430,7 +583,6 @@ export default class Shop extends Phaser.Scene {
                 }
               },
 
-              // Player ignores timeout
               () => {
                 gameState.saveParasiteChoice(
                   this.currentBoxId,
@@ -503,7 +655,6 @@ export default class Shop extends Phaser.Scene {
           text: "Box 2 ist abgeschlossen. Box 3 kommt später."
         }
       ]);
-      return;
     }
   }
 }

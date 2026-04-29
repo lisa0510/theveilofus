@@ -3,12 +3,13 @@ import "./style.css";
 import Menu from "./scenes/menu.js";
 import Shop from "./scenes/shop.js";
 import Tutorial from "./scenes/tutorial.js";
+import Intro from "./scenes/introtext.js";
 
 
 const config = {
   type: Phaser.AUTO,
   parent: "app",
-  scene: [Shop,Menu,Tutorial],
+  scene: [Menu,Intro, Tutorial, Shop],
   scale: {
     mode: Phaser.Scale.FIT,
     autoCenter: Phaser.Scale.CENTER_BOTH,
