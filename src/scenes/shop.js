@@ -1,7 +1,11 @@
 import Phaser from "phaser";
-import DialogueManager from "../systems/DialogueManager.js";
-import BoxManager from "../systems/BoxManager.js";
+
+import DialogueManager from "../systems/dialogueManager.js";
+import BoxManager from "../systems/boxManager.js";
+import gameState from "../systems/gamestate.js";
+
 import { box1Data } from "../data/box1Dialogue.js";
+import { box2Data } from "../data/box2Dialogue.js";
 
 export default class Shop extends Phaser.Scene {
   constructor() {
@@ -17,7 +21,8 @@ export default class Shop extends Phaser.Scene {
     this.load.image("knive", "assets/Fish/knive.png");
     this.load.image("fish", "assets/Fish02/Fisch.png");
     this.load.image("board", "assets/Fish02/Schnittbrett.png");
-    this.load.image("whale", "assets/Fish02/GrosserWal.png");
+    this.load.image("parasite", "assets/Fish02/parasite.png");
+    this.load.image("miniwal", "assets/Fish02/MiniWal.png");
   }
 
   create() {
@@ -52,20 +57,16 @@ export default class Shop extends Phaser.Scene {
     this.cutResults = [];
     this.choiceButtons = [];
 
-    this.gameState = {
-      fishChoices: [],
-      whaleChoices: [],
-      boxResults: [],
-      perfectBoxes: 0
-    };
+    gameState.reset();
 
-    this.boxManager.startBox(box1Data);
+    this.boxManager.startBox("box1", box1Data);
   }
 
   enableCoworkerInteraction() {
     this.coworker.setInteractive({ useHandCursor: true });
 
     this.coworker.once("pointerdown", () => {
+      this.coworker.disableInteractive();
       this.startCuttingPhase();
     });
   }
@@ -86,88 +87,115 @@ export default class Shop extends Phaser.Scene {
       width / 2,
       height / 2,
       "board"
-    ).setDepth(101).setScale(0.7);
+    )
+      .setDepth(101)
+      .setScale(0.7);
 
     this.spawnFish(false);
-
     this.startFishDialogue();
   }
 
   startFishDialogue() {
-  const node = this.currentBox.fishDialogue[0];
+    const node = this.currentBox.fishDialogue[0];
 
-  // 1. Start the dialogue text
-  this.dialogueManager.startDialogue([{ text: node.text }]);
-
-  // 2. Immediately show choices (don't wait for the dialogue to finish)
-  this.showChoices(node.choices, (choice) => {
-    this.gameState.fishChoices.push(choice.id);
-
-    // 3. When a choice is clicked, show the reaction text
     this.dialogueManager.startDialogue(
-      [{ text: choice.nextText }],
+      [{ text: node.text }],
       () => {
-        // Only after the reaction is read/done, start the cutting
-        this.activateCuttingLogic();
+        this.showChoices(node.choices, (choice) => {
+          gameState.saveFishChoice(this.currentBoxId, choice.id);
+
+          if (choice.nextText) {
+            this.dialogueManager.startDialogue(
+              [{ text: choice.nextText }],
+              () => {
+                this.activateCuttingLogic();
+              }
+            );
+          } else {
+            this.activateCuttingLogic();
+          }
+        });
       }
     );
-  });
-}
+  }
 
-showChoices(choices, callback) {
-  const { width, height } = this.scale;
+  showChoices(choices, callback, timeoutCallback = null, timeoutMs = null) {
+    const { width, height } = this.scale;
 
-  // Configuration for spacing
-  const spacing = 250; // Distance between the centers of the buttons
-  const baseY = height / 1.1; // Adjusted to be near the bottom dialogue area
-
-  choices.forEach((choice, index) => {
-    // Calculate X: 
-    // If index 0: width/2 - spacing/2
-    // If index 1: width/2 + spacing/2
+    const spacing = 250;
+    const baseY = height / 1.1;
     const totalWidth = (choices.length - 1) * spacing;
-    const startX = (width / 2) - (totalWidth / 2);
-    const xPos = startX + (index * spacing);
+    const startX = width / 2 - totalWidth / 2;
 
-    const btn = this.add.text(
-      xPos,
-      baseY, 
-      choice.text,
-      {
-        fontSize: "20px",
-        backgroundColor: "#1a1a1a",
-        color: "#ffffff",
-        padding: { x: 15, y: 10 },
-        align: "center",
-        wordWrap: { width: 200 }
-      }
-    )
-      .setOrigin(0.5)
-      .setInteractive({ useHandCursor: true })
-      .setDepth(600);
+    let choiceMade = false;
+    let timeoutEvent = null;
 
-    btn.on("pointerdown", () => {
-      this.choiceButtons.forEach((b) => b.destroy());
+    const clearChoices = () => {
+      this.choiceButtons.forEach((button) => button.destroy());
       this.choiceButtons = [];
-      callback(choice);
-    });
 
-    this.choiceButtons.push(btn);
+      if (timeoutEvent) {
+        timeoutEvent.remove(false);
+        timeoutEvent = null;
+      }
+    };
 
-    btn.setAlpha(0); // Start invisible
-    this.tweens.add({
-      targets: btn,
-      alpha: 1,
-      duration: 10000, // Half a second fade-in
-      ease: 'Power2'
+    if (timeoutCallback && timeoutMs) {
+      timeoutEvent = this.time.delayedCall(timeoutMs, () => {
+        if (choiceMade) return;
+
+        choiceMade = true;
+        clearChoices();
+        timeoutCallback();
+      });
+    }
+
+    choices.forEach((choice, index) => {
+      const xPos = startX + index * spacing;
+
+      const btn = this.add.text(
+        xPos,
+        baseY,
+        choice.text,
+        {
+          fontSize: "20px",
+          backgroundColor: "#1a1a1a",
+          color: "#ffffff",
+          padding: { x: 15, y: 10 },
+          align: "center",
+          wordWrap: { width: 200 }
+        }
+      )
+        .setOrigin(0.5)
+        .setInteractive({ useHandCursor: true })
+        .setDepth(600);
+
+      btn.on("pointerdown", () => {
+        if (choiceMade) return;
+
+        choiceMade = true;
+        clearChoices();
+        callback(choice);
+      });
+
+      this.choiceButtons.push(btn);
+
+      btn.setAlpha(0);
+
+      this.tweens.add({
+        targets: btn,
+        alpha: 1,
+        duration: 500,
+        ease: "Power2"
+      });
     });
-  });
-}
+  }
 
   spawnFish(activateLogic = true) {
     const { width, height } = this.scale;
 
     if (this.fish) this.fish.destroy();
+    if (this.swipeGraphics) this.swipeGraphics.destroy();
 
     this.fish = this.add.image(
       width / 2,
@@ -191,7 +219,7 @@ showChoices(choices, callback) {
         y: pointer.y
       };
 
-      this.input.on("pointermove", (movePointer) => {
+      const drawSwipe = (movePointer) => {
         if (movePointer.isDown && startPoint) {
           this.swipeGraphics.clear();
           this.swipeGraphics.lineStyle(5, 0xffffff, 1);
@@ -202,11 +230,13 @@ showChoices(choices, callback) {
             movePointer.y
           );
         }
-      });
+      };
+
+      this.input.on("pointermove", drawSwipe);
 
       this.input.once("pointerup", (pointerUp) => {
         this.swipeGraphics.clear();
-        this.input.off("pointermove");
+        this.input.off("pointermove", drawSwipe);
 
         this.handleSlice(
           startPoint,
@@ -221,6 +251,7 @@ showChoices(choices, callback) {
 
   handleSlice(start, end) {
     const bounds = this.fish.getBounds();
+
     const line = new Phaser.Geom.Line(
       start.x,
       start.y,
@@ -228,14 +259,18 @@ showChoices(choices, callback) {
       end.y
     );
 
-    if (!Phaser.Geom.Intersects.LineToRectangle(line, bounds)) {
+    const hitFish = Phaser.Geom.Intersects.LineToRectangle(
+      line,
+      bounds
+    );
+
+    if (!hitFish) {
       this.activateCuttingLogic();
       return;
     }
 
     const cutX = (start.x + end.x) / 2;
-    const fishLeft =
-      this.fish.x - this.fish.displayWidth / 2;
+    const fishLeft = this.fish.x - this.fish.displayWidth / 2;
 
     const localX = Phaser.Math.Clamp(
       cutX - fishLeft,
@@ -248,19 +283,26 @@ showChoices(choices, callback) {
     );
 
     this.cutResults.push(percent);
+    gameState.saveCut(this.currentBoxId, percent);
 
     this.animateSlice(localX, percent);
   }
 
   animateSlice(localX, percent) {
-    const { x, y, displayWidth: w, displayHeight: h } =
-      this.fish;
+    const {
+      x,
+      y,
+      displayWidth: w,
+      displayHeight: h
+    } = this.fish;
 
     const leftHalf = this.add.image(x, y, "fish")
+      .setDepth(103)
       .setDisplaySize(w, h)
       .setCrop(0, 0, localX, h);
 
     const rightHalf = this.add.image(x, y, "fish")
+      .setDepth(103)
       .setDisplaySize(w, h)
       .setCrop(localX, 0, w - localX, h);
 
@@ -312,55 +354,116 @@ showChoices(choices, callback) {
   }
 
   finishBox() {
-    this.overlay.destroy();
-    this.boardImg.destroy();
+    if (this.overlay) this.overlay.destroy();
+    if (this.boardImg) this.boardImg.destroy();
+    if (this.swipeGraphics) this.swipeGraphics.destroy();
 
-    const perfect = this.cutResults.every(
-      (cut) => cut === 50
-    );
+    const perfect = gameState.isPerfectBox(this.currentBoxId);
+
+    console.log("Box:", this.currentBoxId);
+    console.log("Box Results:", gameState.boxResults[this.currentBoxId]);
+    console.log("Perfect:", perfect);
 
     if (perfect) {
-      this.gameState.perfectBoxes++;
-
       this.dialogueManager.startDialogue(
         this.currentBox.successDialogue,
         () => {
-          this.startBox2();
+          this.startNextBox();
         }
       );
     } else {
-      this.startWhaleEncounter();
+      this.startParasiteEncounter();
     }
   }
 
-  startWhaleEncounter() {
+  startParasiteEncounter() {
     const { width, height } = this.scale;
 
-    this.whale = this.add.image(
+    gameState.setParasiteInteraction(this.currentBoxId, true);
+
+    this.parasite = this.add.image(
       width / 2,
       height / 2,
-      "whale"
-    ).setDepth(400);
+      "parasite"
+    )
+      .setDepth(400)
+      .setScale(3.5);
 
-    const whaleNode =
-      this.currentBox.whaleDialogue[1];
+    const parasiteIntro = this.currentBox.parasiteDialogue[0];
+    const parasiteNode = this.currentBox.parasiteDialogue[1];
 
     this.dialogueManager.startDialogue(
-      [{ text: whaleNode.text }],
+      [{ text: parasiteIntro.text }],
       () => {
-        this.showChoices(
-          whaleNode.choices,
-          (choice) => {
-            this.gameState.whaleChoices.push(
-              choice.id
-            );
+        this.dialogueManager.startDialogue(
+          [{ text: parasiteNode.text }],
+          () => {
+            this.showChoices(
+              parasiteNode.choices,
 
-            this.dialogueManager.startDialogue(
-              [{ text: choice.nextText }],
+              // Player chooses
+              (choice) => {
+                gameState.saveParasiteChoice(
+                  this.currentBoxId,
+                  choice.id
+                );
+
+                if (choice.nextText) {
+                  this.dialogueManager.startDialogue(
+                    [{ text: choice.nextText }],
+                    () => {
+                      if (this.parasite) {
+                        this.parasite.destroy();
+                        this.parasite = null;
+                      }
+
+                      this.startNextBox();
+                    }
+                  );
+                } else {
+                  if (this.parasite) {
+                    this.parasite.destroy();
+                    this.parasite = null;
+                  }
+
+                  this.startNextBox();
+                }
+              },
+
+              // Player ignores timeout
               () => {
-                this.whale.destroy();
-                this.startBox2();
-              }
+                gameState.saveParasiteChoice(
+                  this.currentBoxId,
+                  "ignored"
+                );
+
+                if (this.parasite) {
+                  this.parasite.destroy();
+                  this.parasite = null;
+                }
+
+                if (this.coworker) {
+                  this.coworker.destroy();
+                  this.coworker = null;
+                }
+
+                this.coworker = this.add.image(
+                  width * 0.8,
+                  0,
+                  "miniwal"
+                )
+                  .setScale(0.4)
+                  .setDepth(50);
+
+                this.dialogueManager.startDialogue(
+                  [parasiteNode.ignoreDialogue[0]],
+                  () => {
+                    this.startNextBox();
+                  }
+                );
+              },
+
+              4000
             );
           }
         );
@@ -368,7 +471,39 @@ showChoices(choices, callback) {
     );
   }
 
-  startBox2() {
-    console.log("BOX 2 START");
+  startNextBox() {
+    const { width, height } = this.scale;
+
+    if (this.parasite) {
+      this.parasite.destroy();
+      this.parasite = null;
+    }
+
+    if (this.coworker) {
+      this.coworker.destroy();
+      this.coworker = null;
+    }
+
+    this.coworker = this.add.image(
+      width / 2,
+      height / 1.8,
+      "customer"
+    )
+      .setScale(0.6)
+      .setDepth(50);
+
+    if (this.currentBoxId === "box1") {
+      this.boxManager.startBox("box2", box2Data);
+      return;
+    }
+
+    if (this.currentBoxId === "box2") {
+      this.dialogueManager.startDialogue([
+        {
+          text: "Box 2 ist abgeschlossen. Box 3 kommt später."
+        }
+      ]);
+      return;
+    }
   }
 }

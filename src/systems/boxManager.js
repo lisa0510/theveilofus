@@ -3,8 +3,12 @@ export default class BoxManager {
     this.scene = scene;
   }
 
-  startBox(boxData) {
+  startBox(boxId, boxData) {
+    this.scene.currentBoxId = boxId;
     this.scene.currentBox = boxData;
+
+    this.scene.currentFish = 0;
+    this.scene.cutResults = [];
 
     this.scene.dialogueManager.startDialogue(
       boxData.introDialogue,

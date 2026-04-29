@@ -7,6 +7,8 @@ export default class DialogueManager {
   }
 
   startDialogue(dialogues, onComplete = null) {
+    this.clearDialogue();
+
     this.dialogues = dialogues;
     this.currentIndex = 0;
     this.onComplete = onComplete;
@@ -33,8 +35,8 @@ export default class DialogueManager {
         wordWrap: { width: width * 0.6 }
       }
     )
-    .setOrigin(0.5)
-    .setDepth(501);
+      .setOrigin(0.5)
+      .setDepth(501);
 
     this.continueBtn = this.scene.add.text(
       width / 1.25,
@@ -47,9 +49,9 @@ export default class DialogueManager {
         padding: { x: 20, y: 10 }
       }
     )
-    .setOrigin(0.5)
-    .setInteractive({ useHandCursor: true })
-    .setDepth(502);
+      .setOrigin(0.5)
+      .setInteractive({ useHandCursor: true })
+      .setDepth(502);
 
     this.continueBtn.on("pointerdown", () => {
       this.nextDialogue();
@@ -63,6 +65,7 @@ export default class DialogueManager {
       this.dialogueText.setText(
         this.dialogues[this.currentIndex].text
       );
+
       this.currentIndex++;
     } else {
       this.clearDialogue();
