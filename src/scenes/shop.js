@@ -44,14 +44,45 @@ export default class Shop extends Phaser.Scene {
     this.currentFish = 0;
     this.cutResults = [];
     this.choiceButtons = [];
-    this.feedbackBubbles = [];
+
+    this.cutLine = null;
+    this.cutLineDirection = 1;
+    this.cutLineSpeed = 12;
+    this.canStopLine = false;
+    this.cutInputReady = false;
+
+    this.input.on("pointerdown", () => {
+      if (!this.canStopLine) return;
+      if (!this.cutInputReady) return;
+
+      this.stopLineAndCut();
+    });
 
     gameState.reset();
-
     this.boxManager.startBox("box1", box1Data);
   }
 
+  update() {
+    if (!this.cutLine || !this.fish) return;
+
+    const bounds = this.fish.getBounds();
+
+    this.cutLine.x += this.cutLineSpeed * this.cutLineDirection;
+
+    if (this.cutLine.x >= bounds.right) {
+      this.cutLine.x = bounds.right;
+      this.cutLineDirection = -1;
+    }
+
+    if (this.cutLine.x <= bounds.left) {
+      this.cutLine.x = bounds.left;
+      this.cutLineDirection = 1;
+    }
+  }
+
   enableCoworkerInteraction() {
+    if (!this.coworker) return;
+
     this.coworker.setInteractive({ useHandCursor: true });
 
     this.coworker.once("pointerdown", () => {
@@ -63,9 +94,20 @@ export default class Shop extends Phaser.Scene {
   startCuttingPhase() {
     const { width, height } = this.scale;
 
-    this.overlay = this.add.rectangle(width / 2, height / 2, width, height, 0x000000, 0.7).setDepth(100);
+    this.overlay = this.add.rectangle(
+      width / 2,
+      height / 2,
+      width,
+      height,
+      0x000000,
+      0.7
+    ).setDepth(100);
 
-    this.boardImg = this.add.image(width / 2, height / 2, "board")
+    this.boardImg = this.add.image(
+      width / 2,
+      height / 2,
+      "board"
+    )
       .setDepth(101)
       .setScale(0.7);
 
@@ -73,22 +115,174 @@ export default class Shop extends Phaser.Scene {
     this.startFishDialogue();
   }
 
+  spawnFish(showLine = true) {
+    const { width, height } = this.scale;
+
+    if (this.fish) this.fish.destroy();
+    if (this.cutLine) this.cutLine.destroy();
+
+    this.canStopLine = false;
+    this.cutInputReady = false;
+
+    this.fish = this.add.image(
+      width / 2,
+      height / 2,
+      "fish"
+    ).setDepth(102);
+
+    if (showLine) {
+      this.createMovingCutLine();
+    }
+  }
+
   startFishDialogue() {
     const node = this.currentBox.fishDialogue[0];
 
-    this.dialogueManager.startDialogue([{ text: node.text }], () => {
-      this.showChoices(node.choices, (choice) => {
-        gameState.saveFishChoice(this.currentBoxId, choice.id);
+    this.dialogueManager.startDialogue(
+      [{ text: node.text }],
+      () => {
+        this.showChoices(node.choices, (choice) => {
+          gameState.saveFishChoice(this.currentBoxId, choice.id);
 
-        if (choice.nextText) {
-          this.dialogueManager.startDialogue([{ text: choice.nextText }], () => {
-            this.activateCuttingLogic();
-          });
-        } else {
-          this.activateCuttingLogic();
-        }
-      });
+          const startCutting = () => {
+            this.createMovingCutLine();
+            this.enableLineClick();
+          };
+
+          if (choice.nextText) {
+            this.dialogueManager.startDialogue(
+              [{ text: choice.nextText }],
+              startCutting
+            );
+          } else {
+            startCutting();
+          }
+        });
+      }
+    );
+  }
+
+  createMovingCutLine() {
+    if (!this.fish) return;
+
+    const bounds = this.fish.getBounds();
+
+    this.cutLine = this.add.rectangle(
+      bounds.left,
+      this.fish.y,
+      5,
+      this.fish.displayHeight + 90,
+      0xffffff,
+      0.95
+    ).setDepth(130);
+
+    this.cutLineDirection = 1;
+    this.cutLineSpeed = 12;
+  }
+
+ enableLineClick() {
+  this.canStopLine = true;
+  this.cutInputReady = false;
+
+  this.time.delayedCall(150, () => {
+    this.cutInputReady = true;
+  });
+}
+
+  stopLineAndCut() {
+    if (!this.canStopLine) return;
+    if (!this.cutInputReady) return;
+    if (!this.cutLine || !this.fish) return;
+
+    this.canStopLine = false;
+    this.cutInputReady = false;
+
+    const bounds = this.fish.getBounds();
+
+    const localX = Phaser.Math.Clamp(
+      this.cutLine.x - bounds.left,
+      0,
+      this.fish.displayWidth
+    );
+
+    const percent = Math.round(
+      (localX / this.fish.displayWidth) * 100
+    );
+
+    this.cutResults.push(percent);
+    gameState.saveCut(this.currentBoxId, percent);
+
+    this.cutLine.destroy();
+    this.cutLine = null;
+
+    this.animateSlice(localX, percent);
+  }
+
+  animateSlice(localX, percent) {
+    const { x, y, displayWidth: w, displayHeight: h } = this.fish;
+
+    const leftHalf = this.add.image(x, y, "fish")
+      .setDepth(103)
+      .setDisplaySize(w, h)
+      .setCrop(0, 0, localX, h);
+
+    const rightHalf = this.add.image(x, y, "fish")
+      .setDepth(103)
+      .setDisplaySize(w, h)
+      .setCrop(localX, 0, w - localX, h);
+
+    this.fish.destroy();
+
+    const diff = Math.abs(percent - 50);
+    const feedbackColor = diff <= 2 ? "#2ecc71" : "#ff4444";
+
+    const percentText = this.add.text(
+      x,
+      y - 150,
+      `${percent}%`,
+      {
+        fontSize: "60px",
+        color: feedbackColor,
+        fontStyle: "bold",
+        stroke: "#000000",
+        strokeThickness: 6
+      }
+    )
+      .setOrigin(0.5)
+      .setDepth(300);
+
+    this.tweens.add({
+      targets: leftHalf,
+      x: x - 250,
+      alpha: 0,
+      duration: 400
     });
+
+    this.tweens.add({
+      targets: rightHalf,
+      x: x + 250,
+      alpha: 0,
+      duration: 400
+    });
+
+    this.time.delayedCall(600, () => {
+      leftHalf.destroy();
+      rightHalf.destroy();
+      percentText.destroy();
+
+      this.nextFish();
+    });
+  }
+
+  nextFish() {
+    this.currentFish++;
+
+    if (this.currentFish < this.totalFish) {
+      this.spawnFish(true);
+      this.enableLineClick();
+    } else {
+      this.finishBox();
+    }
   }
 
   showChoices(choices, callback, timeoutCallback = null, timeoutMs = null) {
@@ -158,291 +352,23 @@ export default class Shop extends Phaser.Scene {
     });
   }
 
-  spawnFish(activateLogic = true) {
-    const { width, height } = this.scale;
-
-    if (this.fish) this.fish.destroy();
-    if (this.swipeGraphics) this.swipeGraphics.destroy();
-
-    this.fish = this.add.image(width / 2, height / 2, "fish").setDepth(102);
-    this.swipeGraphics = this.add.graphics().setDepth(110);
-
-    if (activateLogic) {
-      this.activateCuttingLogic();
-    }
-  }
-
-  activateCuttingLogic() {
-    let startPoint = null;
-
-    this.input.once("pointerdown", (pointer, gameObjects) => {
-      if (gameObjects.length > 0) {
-        this.activateCuttingLogic();
-        return;
-      }
-
-      startPoint = {
-        x: pointer.x,
-        y: pointer.y
-      };
-
-      const drawSwipe = (movePointer) => {
-        if (movePointer.isDown && startPoint) {
-          this.swipeGraphics.clear();
-          this.swipeGraphics.lineStyle(5, 0xffffff, 1);
-          this.swipeGraphics.lineBetween(
-            startPoint.x,
-            startPoint.y,
-            movePointer.x,
-            movePointer.y
-          );
-        }
-      };
-
-      this.input.on("pointermove", drawSwipe);
-
-      this.input.once("pointerup", (pointerUp) => {
-        this.swipeGraphics.clear();
-        this.input.off("pointermove", drawSwipe);
-
-        this.handleSlice(startPoint, {
-          x: pointerUp.x,
-          y: pointerUp.y
-        });
-      });
-    });
-  }
-
-  handleSlice(start, end) {
-    const bounds = this.fish.getBounds();
-
-    const dx = end.x - start.x;
-    const dy = end.y - start.y;
-
-    const distance = Phaser.Math.Distance.Between(start.x, start.y, end.x, end.y);
-
-    if (distance < 120) {
-      this.showCutError("Zu kurz!");
-      this.activateCuttingLogic();
-      return;
-    }
-
-    const verticalEnough = Math.abs(dy) > Math.abs(dx) * 2;
-
-    if (!verticalEnough) {
-      this.showCutError("Nur vertikal schneiden!");
-      this.activateCuttingLogic();
-      return;
-    }
-
-    const line = new Phaser.Geom.Line(start.x, start.y, end.x, end.y);
-    const hitFish = Phaser.Geom.Intersects.LineToRectangle(line, bounds);
-
-    if (!hitFish) {
-      this.showCutError("Daneben!");
-      this.activateCuttingLogic();
-      return;
-    }
-
-    const cutX = (start.x + end.x) / 2;
-    const fishLeft = this.fish.x - this.fish.displayWidth / 2;
-
-    const localX = Phaser.Math.Clamp(cutX - fishLeft, 0, this.fish.displayWidth);
-    const percent = Math.round((localX / this.fish.displayWidth) * 100);
-
-    this.cutResults.push(percent);
-    gameState.saveCut(this.currentBoxId, percent);
-
-    this.animateSlice(localX, percent);
-  }
-
-  showCutError(message = "") {
-    const { width, height } = this.scale;
-
-    const errorText = this.add.text(width / 2, height * 0.25, message, {
-      fontSize: "30px",
-      color: "#ff4444",
-      fontStyle: "bold"
-    })
-      .setOrigin(0.5)
-      .setDepth(800);
-
-    errorText.setAlpha(0);
-
-    this.tweens.add({
-      targets: errorText,
-      alpha: 1,
-      duration: 150,
-      yoyo: true,
-      hold: 500,
-      onComplete: () => {
-        errorText.destroy();
-      }
-    });
-  }
-
-  animateSlice(localX, percent) {
-    const {
-      x,
-      y,
-      displayWidth: w,
-      displayHeight: h
-    } = this.fish;
-
-    const leftHalf = this.add.image(x, y, "fish")
-      .setDepth(103)
-      .setDisplaySize(w, h)
-      .setCrop(0, 0, localX, h);
-
-    const rightHalf = this.add.image(x, y, "fish")
-      .setDepth(103)
-      .setDisplaySize(w, h)
-      .setCrop(localX, 0, w - localX, h);
-
-    this.fish.destroy();
-
-    this.createFeedbackBubble(percent);
-
-    this.tweens.add({
-      targets: leftHalf,
-      x: x - 250,
-      alpha: 0,
-      duration: 400
-    });
-
-    this.tweens.add({
-      targets: rightHalf,
-      x: x + 250,
-      alpha: 0,
-      duration: 400
-    });
-
-    this.time.delayedCall(500, () => {
-      leftHalf.destroy();
-      rightHalf.destroy();
-
-      this.nextFish();
-    });
-  }
-
-  createFeedbackBubble(percent) {
-    const { width, height } = this.scale;
-
-    let label = "Schlecht";
-    let color = 0x8b1a1a;
-
-    if (percent === 50) {
-      label = "Perfect";
-      color = 0x2ecc71;
-    } else if (percent >= 45 && percent <= 55) {
-      label = "OK";
-      color = 0xf1c40f;
-    }
-
-    const bubbleRadius = 120;
-    const bubbleSize = bubbleRadius * 2;
-
-    const x = width * 0.32 + this.feedbackBubbles.length * 140;
-    const y = height * 0.48;
-
-    const bubble = this.add.container(x, y).setDepth(700);
-
-    const circle = this.add.circle(0, 0, bubbleRadius, color, 0.85);
-
-    const text = this.add.text(0, 0, label, {
-      fontSize: "26px",
-      color: "#ffffff",
-      align: "center"
-    }).setOrigin(0.5);
-
-    bubble.add([circle, text]);
-    bubble.setSize(bubbleSize, bubbleSize);
-
-    bubble.setInteractive(
-      new Phaser.Geom.Circle(bubbleRadius, bubbleRadius, bubbleRadius),
-      Phaser.Geom.Circle.Contains
-    );
-
-    this.input.setDraggable(bubble);
-
-    bubble.on("drag", (pointer, dragX, dragY) => {
-      bubble.x = dragX;
-      bubble.y = dragY;
-    });
-
-    bubble.setScale(0);
-
-    this.tweens.add({
-      targets: bubble,
-      scale: 1,
-      duration: 300,
-      ease: "Back.Out",
-      onComplete: () => {
-        this.tweens.add({
-          targets: bubble,
-          y: bubble.y - Phaser.Math.Between(30, 340),
-          duration: Phaser.Math.Between(4000, 7000),
-          ease: "Sine.Out"
-        });
-
-        this.tweens.add({
-          targets: bubble,
-          x: bubble.x + Phaser.Math.Between(-50, 70),
-          duration: Phaser.Math.Between(1200, 2000),
-          ease: "Sine.InOut",
-          yoyo: true,
-          repeat: -1
-        });
-
-        this.tweens.add({
-          targets: bubble,
-          scale: 1.05,
-          duration: 1200,
-          ease: "Sine.InOut",
-          yoyo: true,
-          repeat: -1
-        });
-      }
-    });
-
-    this.feedbackBubbles.push(bubble);
-  }
-
-  clearFeedbackBubbles() {
-    this.feedbackBubbles.forEach((bubble) => {
-      bubble.destroy();
-    });
-
-    this.feedbackBubbles = [];
-  }
-
-  nextFish() {
-    this.currentFish++;
-
-    if (this.currentFish < this.totalFish) {
-      this.spawnFish(true);
-    } else {
-      this.finishBox();
-    }
-  }
-
   finishBox() {
     if (this.overlay) this.overlay.destroy();
     if (this.boardImg) this.boardImg.destroy();
-    if (this.swipeGraphics) this.swipeGraphics.destroy();
+    if (this.cutLine) this.cutLine.destroy();
 
-    this.clearFeedbackBubbles();
+    this.canStopLine = false;
+    this.cutInputReady = false;
 
     const perfect = gameState.isPerfectBox(this.currentBoxId);
 
-    console.log("Box:", this.currentBoxId);
-    console.log("Box Results:", gameState.boxResults[this.currentBoxId]);
-    console.log("Perfect:", perfect);
-
     if (perfect) {
-      this.dialogueManager.startDialogue(this.currentBox.successDialogue, () => {
-        this.startNextStep();
-      });
+      this.dialogueManager.startDialogue(
+        this.currentBox.successDialogue,
+        () => {
+          this.startNextStep();
+        }
+      );
     } else {
       this.startParasiteEncounter();
     }
@@ -453,66 +379,87 @@ export default class Shop extends Phaser.Scene {
 
     gameState.setParasiteInteraction(this.currentBoxId, true);
 
-    this.parasite = this.add.image(width / 2, height / 2, "parasite")
+    this.parasite = this.add.image(
+      width / 2,
+      height / 2,
+      "parasite"
+    )
       .setDepth(400)
       .setScale(3.5);
 
     const parasiteIntro = this.currentBox.parasiteDialogue[0];
     const parasiteNode = this.currentBox.parasiteDialogue[1];
 
-    this.dialogueManager.startDialogue([{ text: parasiteIntro.text }], () => {
-      this.dialogueManager.startDialogue([{ text: parasiteNode.text }], () => {
-        this.showChoices(
-          parasiteNode.choices,
+    this.dialogueManager.startDialogue(
+      [{ text: parasiteIntro.text }],
+      () => {
+        this.dialogueManager.startDialogue(
+          [{ text: parasiteNode.text }],
+          () => {
+            this.showChoices(
+              parasiteNode.choices,
 
-          (choice) => {
-            gameState.saveParasiteChoice(this.currentBoxId, choice.id);
+              (choice) => {
+                gameState.saveParasiteChoice(this.currentBoxId, choice.id);
 
-            if (choice.nextText) {
-              this.dialogueManager.startDialogue([{ text: choice.nextText }], () => {
+                if (choice.nextText) {
+                  this.dialogueManager.startDialogue(
+                    [{ text: choice.nextText }],
+                    () => {
+                      if (this.parasite) {
+                        this.parasite.destroy();
+                        this.parasite = null;
+                      }
+
+                      this.startNextStep();
+                    }
+                  );
+                } else {
+                  if (this.parasite) {
+                    this.parasite.destroy();
+                    this.parasite = null;
+                  }
+
+                  this.startNextStep();
+                }
+              },
+
+              () => {
+                gameState.saveParasiteChoice(this.currentBoxId, "ignored");
+
                 if (this.parasite) {
                   this.parasite.destroy();
                   this.parasite = null;
                 }
 
-                this.startNextStep();
-              });
-            } else {
-              if (this.parasite) {
-                this.parasite.destroy();
-                this.parasite = null;
-              }
+                if (this.coworker) {
+                  this.coworker.destroy();
+                  this.coworker = null;
+                }
 
-              this.startNextStep();
-            }
-          },
+                this.coworker = this.add.image(
+                  width * 0.8,
+                  0,
+                  "miniwal"
+                )
+                  .setScale(0.4)
+                  .setDepth(50)
+                  .setOrigin(1, 0);
 
-          () => {
-            gameState.saveParasiteChoice(this.currentBoxId, "ignored");
+                this.dialogueManager.startDialogue(
+                  [parasiteNode.ignoreDialogue[0]],
+                  () => {
+                    this.startNextStep();
+                  }
+                );
+              },
 
-            if (this.parasite) {
-              this.parasite.destroy();
-              this.parasite = null;
-            }
-
-            if (this.coworker) {
-              this.coworker.destroy();
-              this.coworker = null;
-            }
-
-            this.coworker = this.add.image(width * 0.8, 0, "miniwal")
-              .setScale(0.4)
-              .setDepth(50);
-
-            this.dialogueManager.startDialogue([parasiteNode.ignoreDialogue[0]], () => {
-              this.startNextStep();
-            });
-          },
-
-          4000
+              4000
+            );
+          }
         );
-      });
-    });
+      }
+    );
   }
 
   startNextStep() {
@@ -528,32 +475,27 @@ export default class Shop extends Phaser.Scene {
       this.coworker = null;
     }
 
-    this.coworker = this.add.image(width / 2, height / 1.8, "customer")
+    this.coworker = this.add.image(
+      width / 2,
+      height / 1.8,
+      "customer"
+    )
       .setScale(0.6)
       .setDepth(50);
 
     if (this.currentBoxId === "box1") {
       this.boxManager.startBox("box2", box2Data);
-      return;
-    }
-
-    if (this.currentBoxId === "box2") {
+    } else if (this.currentBoxId === "box2") {
       this.startFinalPath();
-      return;
     }
   }
 
- startFinalPath() {
-  const ending = gameState.getEnding();
-  const stats = gameState.getEndingStats();
+  startFinalPath() {
+    const ending = gameState.getEnding();
+    const finalDialogue = box2Data.finalDialogues[ending];
 
-  const finalDialogue = box2Data.finalDialogues[ending];
-
-  console.log("ENDING:", ending);
-  console.log("STATS:", stats);
-
-  this.dialogueManager.startDialogue(finalDialogue, () => {
-    console.log("FINAL PATH FINISHED");
-  });
-}
+    this.dialogueManager.startDialogue(finalDialogue, () => {
+      console.log("GAME OVER / ENDING REACHED");
+    });
+  }
 }

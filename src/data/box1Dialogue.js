@@ -1,10 +1,7 @@
 export const box1Data = {
   introDialogue: [
     {
-      text: "Da bin ich wieder Doktor. Hier ist die erste Box von drei."
-    },
-    {
-      text: "Bitte kümmern Sie sich darum."
+      text: "Da bin ich wieder Doktor.."
     }
   ],
 
