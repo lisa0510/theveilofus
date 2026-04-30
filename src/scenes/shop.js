@@ -28,26 +28,14 @@ export default class Shop extends Phaser.Scene {
   create() {
     const { width, height } = this.scale;
 
-    this.add.image(width / 2, height / 2, "shop_bg")
-      .setDisplaySize(width, height);
+    this.add.image(width / 2, height / 2, "shop_bg").setDisplaySize(width, height);
+    this.add.image(width / 2, height / 2, "shop_bg2").setDisplaySize(width, height);
 
-    this.add.image(width / 2, height / 2, "shop_bg2")
-      .setDisplaySize(width, height);
+    this.add.image(width / 2, height / 1, "tisch").setScale(1.2);
+    this.add.image(width / 2, height / 1.1, "cutting").setScale(0.7);
+    this.add.image(width / 1.5, height / 1.1, "knive").setScale(0.15);
 
-    this.add.image(width / 2, height / 1, "tisch")
-      .setScale(1.2);
-
-    this.add.image(width / 2, height / 1.1, "cutting")
-      .setScale(0.7);
-
-    this.add.image(width / 1.5, height / 1.1, "knive")
-      .setScale(0.15);
-
-    this.coworker = this.add.image(
-      width / 2,
-      height / 1.8,
-      "customer"
-    ).setScale(0.6);
+    this.coworker = this.add.image(width / 2, height / 1.8, "customer").setScale(0.6);
 
     this.dialogueManager = new DialogueManager(this);
     this.boxManager = new BoxManager(this);
@@ -75,20 +63,9 @@ export default class Shop extends Phaser.Scene {
   startCuttingPhase() {
     const { width, height } = this.scale;
 
-    this.overlay = this.add.rectangle(
-      width / 2,
-      height / 2,
-      width,
-      height,
-      0x000000,
-      0.7
-    ).setDepth(100);
+    this.overlay = this.add.rectangle(width / 2, height / 2, width, height, 0x000000, 0.7).setDepth(100);
 
-    this.boardImg = this.add.image(
-      width / 2,
-      height / 2,
-      "board"
-    )
+    this.boardImg = this.add.image(width / 2, height / 2, "board")
       .setDepth(101)
       .setScale(0.7);
 
@@ -99,25 +76,19 @@ export default class Shop extends Phaser.Scene {
   startFishDialogue() {
     const node = this.currentBox.fishDialogue[0];
 
-    this.dialogueManager.startDialogue(
-      [{ text: node.text }],
-      () => {
-        this.showChoices(node.choices, (choice) => {
-          gameState.saveFishChoice(this.currentBoxId, choice.id);
+    this.dialogueManager.startDialogue([{ text: node.text }], () => {
+      this.showChoices(node.choices, (choice) => {
+        gameState.saveFishChoice(this.currentBoxId, choice.id);
 
-          if (choice.nextText) {
-            this.dialogueManager.startDialogue(
-              [{ text: choice.nextText }],
-              () => {
-                this.activateCuttingLogic();
-              }
-            );
-          } else {
+        if (choice.nextText) {
+          this.dialogueManager.startDialogue([{ text: choice.nextText }], () => {
             this.activateCuttingLogic();
-          }
-        });
-      }
-    );
+          });
+        } else {
+          this.activateCuttingLogic();
+        }
+      });
+    });
   }
 
   showChoices(choices, callback, timeoutCallback = null, timeoutMs = null) {
@@ -154,19 +125,14 @@ export default class Shop extends Phaser.Scene {
     choices.forEach((choice, index) => {
       const xPos = startX + index * spacing;
 
-      const btn = this.add.text(
-        xPos,
-        baseY,
-        choice.text,
-        {
-          fontSize: "20px",
-          backgroundColor: "#1a1a1a",
-          color: "#ffffff",
-          padding: { x: 15, y: 10 },
-          align: "center",
-          wordWrap: { width: 200 }
-        }
-      )
+      const btn = this.add.text(xPos, baseY, choice.text, {
+        fontSize: "20px",
+        backgroundColor: "#1a1a1a",
+        color: "#ffffff",
+        padding: { x: 15, y: 10 },
+        align: "center",
+        wordWrap: { width: 200 }
+      })
         .setOrigin(0.5)
         .setInteractive({ useHandCursor: true })
         .setDepth(600);
@@ -198,12 +164,7 @@ export default class Shop extends Phaser.Scene {
     if (this.fish) this.fish.destroy();
     if (this.swipeGraphics) this.swipeGraphics.destroy();
 
-    this.fish = this.add.image(
-      width / 2,
-      height / 2,
-      "fish"
-    ).setDepth(102);
-
+    this.fish = this.add.image(width / 2, height / 2, "fish").setDepth(102);
     this.swipeGraphics = this.add.graphics().setDepth(110);
 
     if (activateLogic) {
@@ -212,142 +173,113 @@ export default class Shop extends Phaser.Scene {
   }
 
   activateCuttingLogic() {
-  let startPoint = null;
+    let startPoint = null;
 
-  this.input.once("pointerdown", (pointer, gameObjects) => {
-    if (gameObjects.length > 0) {
+    this.input.once("pointerdown", (pointer, gameObjects) => {
+      if (gameObjects.length > 0) {
+        this.activateCuttingLogic();
+        return;
+      }
+
+      startPoint = {
+        x: pointer.x,
+        y: pointer.y
+      };
+
+      const drawSwipe = (movePointer) => {
+        if (movePointer.isDown && startPoint) {
+          this.swipeGraphics.clear();
+          this.swipeGraphics.lineStyle(5, 0xffffff, 1);
+          this.swipeGraphics.lineBetween(
+            startPoint.x,
+            startPoint.y,
+            movePointer.x,
+            movePointer.y
+          );
+        }
+      };
+
+      this.input.on("pointermove", drawSwipe);
+
+      this.input.once("pointerup", (pointerUp) => {
+        this.swipeGraphics.clear();
+        this.input.off("pointermove", drawSwipe);
+
+        this.handleSlice(startPoint, {
+          x: pointerUp.x,
+          y: pointerUp.y
+        });
+      });
+    });
+  }
+
+  handleSlice(start, end) {
+    const bounds = this.fish.getBounds();
+
+    const dx = end.x - start.x;
+    const dy = end.y - start.y;
+
+    const distance = Phaser.Math.Distance.Between(start.x, start.y, end.x, end.y);
+
+    if (distance < 120) {
+      this.showCutError("Zu kurz!");
       this.activateCuttingLogic();
       return;
     }
 
-    startPoint = {
-      x: pointer.x,
-      y: pointer.y
-    };
+    const verticalEnough = Math.abs(dy) > Math.abs(dx) * 2;
 
-    const drawSwipe = (movePointer) => {
-      if (movePointer.isDown && startPoint) {
-        this.swipeGraphics.clear();
-        this.swipeGraphics.lineStyle(5, 0xffffff, 1);
-        this.swipeGraphics.lineBetween(
-          startPoint.x,
-          startPoint.y,
-          movePointer.x,
-          movePointer.y
-        );
-      }
-    };
+    if (!verticalEnough) {
+      this.showCutError("Nur vertikal schneiden!");
+      this.activateCuttingLogic();
+      return;
+    }
 
-    this.input.on("pointermove", drawSwipe);
+    const line = new Phaser.Geom.Line(start.x, start.y, end.x, end.y);
+    const hitFish = Phaser.Geom.Intersects.LineToRectangle(line, bounds);
 
-    this.input.once("pointerup", (pointerUp) => {
-      this.swipeGraphics.clear();
-      this.input.off("pointermove", drawSwipe);
+    if (!hitFish) {
+      this.showCutError("Daneben!");
+      this.activateCuttingLogic();
+      return;
+    }
 
-      this.handleSlice(
-        startPoint,
-        {
-          x: pointerUp.x,
-          y: pointerUp.y
-        }
-      );
-    });
-  });
-}
-  
-  handleSlice(start, end) {
-  const bounds = this.fish.getBounds();
+    const cutX = (start.x + end.x) / 2;
+    const fishLeft = this.fish.x - this.fish.displayWidth / 2;
 
-  const dx = end.x - start.x;
-  const dy = end.y - start.y;
+    const localX = Phaser.Math.Clamp(cutX - fishLeft, 0, this.fish.displayWidth);
+    const percent = Math.round((localX / this.fish.displayWidth) * 100);
 
-  const distance = Phaser.Math.Distance.Between(
-    start.x,
-    start.y,
-    end.x,
-    end.y
-  );
+    this.cutResults.push(percent);
+    gameState.saveCut(this.currentBoxId, percent);
 
-  if (distance < 120) {
-    this.showCutError("Zu kurz!");
-    this.activateCuttingLogic();
-    return;
+    this.animateSlice(localX, percent);
   }
 
-  const verticalEnough = Math.abs(dy) > Math.abs(dx) * 2;
+  showCutError(message = "") {
+    const { width, height } = this.scale;
 
-  if (!verticalEnough) {
-    this.showCutError("Nur vertikal schneiden!");
-    this.activateCuttingLogic();
-    return;
-  }
-
-  const line = new Phaser.Geom.Line(
-    start.x,
-    start.y,
-    end.x,
-    end.y
-  );
-
-  const hitFish = Phaser.Geom.Intersects.LineToRectangle(
-    line,
-    bounds
-  );
-
-  if (!hitFish) {
-    this.showCutError("Daneben!");
-    this.activateCuttingLogic();
-    return;
-  }
-
-  const cutX = (start.x + end.x) / 2;
-  const fishLeft = this.fish.x - this.fish.displayWidth / 2;
-
-  const localX = Phaser.Math.Clamp(
-    cutX - fishLeft,
-    0,
-    this.fish.displayWidth
-  );
-
-  const percent = Math.round(
-    (localX / this.fish.displayWidth) * 100
-  );
-
-  this.cutResults.push(percent);
-  gameState.saveCut(this.currentBoxId, percent);
-
-  this.animateSlice(localX, percent);
-}
-
-showCutError(message = "") {
-  const { width, height } = this.scale;
-
-  const errorText = this.add.text(
-    width / 2,
-    height * 0.25,
-    message,
-    {
+    const errorText = this.add.text(width / 2, height * 0.25, message, {
       fontSize: "30px",
       color: "#ff4444",
       fontStyle: "bold"
-    }
-  )
-    .setOrigin(0.5)
-    .setDepth(800);
+    })
+      .setOrigin(0.5)
+      .setDepth(800);
 
-  errorText.setAlpha(0);
+    errorText.setAlpha(0);
 
-  this.tweens.add({
-    targets: errorText,
-    alpha: 1,
-    duration: 150,
-    yoyo: true,
-    hold: 500,
-    onComplete: () => {
-      errorText.destroy();
-    }
-  });
-}
+    this.tweens.add({
+      targets: errorText,
+      alpha: 1,
+      duration: 150,
+      yoyo: true,
+      hold: 500,
+      onComplete: () => {
+        errorText.destroy();
+      }
+    });
+  }
 
   animateSlice(localX, percent) {
     const {
@@ -394,98 +326,87 @@ showCutError(message = "") {
   }
 
   createFeedbackBubble(percent) {
-  const { width, height } = this.scale;
+    const { width, height } = this.scale;
 
-  let label = "Schlecht";
-  let color = 0x8b1a1a;
+    let label = "Schlecht";
+    let color = 0x8b1a1a;
 
-  if (percent === 50) {
-    label = "Perfect";
-    color = 0x2ecc71;
-  } else if (percent >= 45 && percent <= 55) {
-    label = "OK";
-    color = 0xf1c40f;
-  }
-
-  const bubbleRadius = 90;
-  const bubbleSize = bubbleRadius * 2;
-
-  const x = width * 0.32 + this.feedbackBubbles.length * 140;
-  const y = height * 0.48;
-
-  const bubble = this.add.container(x, y).setDepth(700);
-
-  const circle = this.add.circle(
-    0,
-    0,
-    bubbleRadius,
-    color,
-    0.85
-  );
-
-  const text = this.add.text(0, 0, label, {
-    fontSize: "26px",
-    color: "#ffffff",
-    align: "center"
-  }).setOrigin(0.5);
-
-  bubble.add([circle, text]);
-
-  bubble.setSize(bubbleSize, bubbleSize);
-
-  bubble.setInteractive(
-    new Phaser.Geom.Circle(
-      bubbleRadius,
-      bubbleRadius,
-      bubbleRadius
-    ),
-    Phaser.Geom.Circle.Contains
-  );
-
-  this.input.setDraggable(bubble);
-
-  bubble.on("drag", (pointer, dragX, dragY) => {
-    bubble.x = dragX;
-    bubble.y = dragY;
-  });
-
-  bubble.setScale(0);
-
-  this.tweens.add({
-    targets: bubble,
-    scale: 1,
-    duration: 300,
-    ease: "Back.Out",
-    onComplete: () => {
-      this.tweens.add({
-        targets: bubble,
-        y: bubble.y - Phaser.Math.Between(30, 340),
-        duration: Phaser.Math.Between(4000, 7000),
-        ease: "Sine.Out"
-      });
-
-      this.tweens.add({
-        targets: bubble,
-        x: bubble.x + Phaser.Math.Between(-50, 70),
-        duration: Phaser.Math.Between(1200, 2000),
-        ease: "Sine.InOut",
-        yoyo: true,
-        repeat: -1
-      });
-
-      this.tweens.add({
-        targets: bubble,
-        scale: 1.05,
-        duration: 1200,
-        ease: "Sine.InOut",
-        yoyo: true,
-        repeat: -1
-      });
+    if (percent === 50) {
+      label = "Perfect";
+      color = 0x2ecc71;
+    } else if (percent >= 45 && percent <= 55) {
+      label = "OK";
+      color = 0xf1c40f;
     }
-  });
 
-  this.feedbackBubbles.push(bubble);
-}
+    const bubbleRadius = 120;
+    const bubbleSize = bubbleRadius * 2;
+
+    const x = width * 0.32 + this.feedbackBubbles.length * 140;
+    const y = height * 0.48;
+
+    const bubble = this.add.container(x, y).setDepth(700);
+
+    const circle = this.add.circle(0, 0, bubbleRadius, color, 0.85);
+
+    const text = this.add.text(0, 0, label, {
+      fontSize: "26px",
+      color: "#ffffff",
+      align: "center"
+    }).setOrigin(0.5);
+
+    bubble.add([circle, text]);
+    bubble.setSize(bubbleSize, bubbleSize);
+
+    bubble.setInteractive(
+      new Phaser.Geom.Circle(bubbleRadius, bubbleRadius, bubbleRadius),
+      Phaser.Geom.Circle.Contains
+    );
+
+    this.input.setDraggable(bubble);
+
+    bubble.on("drag", (pointer, dragX, dragY) => {
+      bubble.x = dragX;
+      bubble.y = dragY;
+    });
+
+    bubble.setScale(0);
+
+    this.tweens.add({
+      targets: bubble,
+      scale: 1,
+      duration: 300,
+      ease: "Back.Out",
+      onComplete: () => {
+        this.tweens.add({
+          targets: bubble,
+          y: bubble.y - Phaser.Math.Between(30, 340),
+          duration: Phaser.Math.Between(4000, 7000),
+          ease: "Sine.Out"
+        });
+
+        this.tweens.add({
+          targets: bubble,
+          x: bubble.x + Phaser.Math.Between(-50, 70),
+          duration: Phaser.Math.Between(1200, 2000),
+          ease: "Sine.InOut",
+          yoyo: true,
+          repeat: -1
+        });
+
+        this.tweens.add({
+          targets: bubble,
+          scale: 1.05,
+          duration: 1200,
+          ease: "Sine.InOut",
+          yoyo: true,
+          repeat: -1
+        });
+      }
+    });
+
+    this.feedbackBubbles.push(bubble);
+  }
 
   clearFeedbackBubbles() {
     this.feedbackBubbles.forEach((bubble) => {
@@ -519,12 +440,9 @@ showCutError(message = "") {
     console.log("Perfect:", perfect);
 
     if (perfect) {
-      this.dialogueManager.startDialogue(
-        this.currentBox.successDialogue,
-        () => {
-          this.startNextBox();
-        }
-      );
+      this.dialogueManager.startDialogue(this.currentBox.successDialogue, () => {
+        this.startNextStep();
+      });
     } else {
       this.startParasiteEncounter();
     }
@@ -535,95 +453,69 @@ showCutError(message = "") {
 
     gameState.setParasiteInteraction(this.currentBoxId, true);
 
-    this.parasite = this.add.image(
-      width / 2,
-      height / 2,
-      "parasite"
-    )
+    this.parasite = this.add.image(width / 2, height / 2, "parasite")
       .setDepth(400)
       .setScale(3.5);
 
     const parasiteIntro = this.currentBox.parasiteDialogue[0];
     const parasiteNode = this.currentBox.parasiteDialogue[1];
 
-    this.dialogueManager.startDialogue(
-      [{ text: parasiteIntro.text }],
-      () => {
-        this.dialogueManager.startDialogue(
-          [{ text: parasiteNode.text }],
-          () => {
-            this.showChoices(
-              parasiteNode.choices,
+    this.dialogueManager.startDialogue([{ text: parasiteIntro.text }], () => {
+      this.dialogueManager.startDialogue([{ text: parasiteNode.text }], () => {
+        this.showChoices(
+          parasiteNode.choices,
 
-              (choice) => {
-                gameState.saveParasiteChoice(
-                  this.currentBoxId,
-                  choice.id
-                );
+          (choice) => {
+            gameState.saveParasiteChoice(this.currentBoxId, choice.id);
 
-                if (choice.nextText) {
-                  this.dialogueManager.startDialogue(
-                    [{ text: choice.nextText }],
-                    () => {
-                      if (this.parasite) {
-                        this.parasite.destroy();
-                        this.parasite = null;
-                      }
-
-                      this.startNextBox();
-                    }
-                  );
-                } else {
-                  if (this.parasite) {
-                    this.parasite.destroy();
-                    this.parasite = null;
-                  }
-
-                  this.startNextBox();
-                }
-              },
-
-              () => {
-                gameState.saveParasiteChoice(
-                  this.currentBoxId,
-                  "ignored"
-                );
-
+            if (choice.nextText) {
+              this.dialogueManager.startDialogue([{ text: choice.nextText }], () => {
                 if (this.parasite) {
                   this.parasite.destroy();
                   this.parasite = null;
                 }
 
-                if (this.coworker) {
-                  this.coworker.destroy();
-                  this.coworker = null;
-                }
+                this.startNextStep();
+              });
+            } else {
+              if (this.parasite) {
+                this.parasite.destroy();
+                this.parasite = null;
+              }
 
-                this.coworker = this.add.image(
-                  width * 0.8,
-                  0,
-                  "miniwal"
-                )
-                  .setScale(0.4)
-                  .setDepth(50);
+              this.startNextStep();
+            }
+          },
 
-                this.dialogueManager.startDialogue(
-                  [parasiteNode.ignoreDialogue[0]],
-                  () => {
-                    this.startNextBox();
-                  }
-                );
-              },
+          () => {
+            gameState.saveParasiteChoice(this.currentBoxId, "ignored");
 
-              4000
-            );
-          }
+            if (this.parasite) {
+              this.parasite.destroy();
+              this.parasite = null;
+            }
+
+            if (this.coworker) {
+              this.coworker.destroy();
+              this.coworker = null;
+            }
+
+            this.coworker = this.add.image(width * 0.8, 0, "miniwal")
+              .setScale(0.4)
+              .setDepth(50);
+
+            this.dialogueManager.startDialogue([parasiteNode.ignoreDialogue[0]], () => {
+              this.startNextStep();
+            });
+          },
+
+          4000
         );
-      }
-    );
+      });
+    });
   }
 
-  startNextBox() {
+  startNextStep() {
     const { width, height } = this.scale;
 
     if (this.parasite) {
@@ -636,11 +528,7 @@ showCutError(message = "") {
       this.coworker = null;
     }
 
-    this.coworker = this.add.image(
-      width / 2,
-      height / 1.8,
-      "customer"
-    )
+    this.coworker = this.add.image(width / 2, height / 1.8, "customer")
       .setScale(0.6)
       .setDepth(50);
 
@@ -650,11 +538,22 @@ showCutError(message = "") {
     }
 
     if (this.currentBoxId === "box2") {
-      this.dialogueManager.startDialogue([
-        {
-          text: "Box 2 ist abgeschlossen. Box 3 kommt später."
-        }
-      ]);
+      this.startFinalPath();
+      return;
     }
   }
+
+ startFinalPath() {
+  const ending = gameState.getEnding();
+  const stats = gameState.getEndingStats();
+
+  const finalDialogue = box2Data.finalDialogues[ending];
+
+  console.log("ENDING:", ending);
+  console.log("STATS:", stats);
+
+  this.dialogueManager.startDialogue(finalDialogue, () => {
+    console.log("FINAL PATH FINISHED");
+  });
+}
 }

@@ -6,103 +6,145 @@ class GameState {
   reset() {
     this.boxResults = {
       box1: [],
-      box2: [],
-      box3: []
+      box2: []
     };
 
     this.fishChoices = {
       box1: [],
-      box2: [],
-      box3: []
+      box2: []
     };
 
     this.parasiteChoices = {
       box1: [],
-      box2: [],
-      box3: []
+      box2: []
     };
 
     this.parasiteInteractions = {
       box1: false,
-      box2: false,
-      box3: false
+      box2: false
     };
   }
 
-  // Cuts speichern
   saveCut(box, percent) {
     this.boxResults[box].push(percent);
   }
 
-  // Fish choices
   saveFishChoice(box, choiceId) {
     this.fishChoices[box].push(choiceId);
   }
 
-  // Parasite choices
   saveParasiteChoice(box, choiceId) {
     this.parasiteChoices[box].push(choiceId);
   }
 
-  // Parasite encounter
   setParasiteInteraction(box, interacted) {
     this.parasiteInteractions[box] = interacted;
   }
 
-  // Check perfekt
+  isPerfectCut(cut) {
+    return cut >= 45 && cut <= 55;
+  }
+
   isPerfectBox(box) {
     const results = this.boxResults[box];
 
     if (!results.length) return false;
 
-    return results.every((cut) => cut === 50);
+    return results.every((cut) => this.isPerfectCut(cut));
   }
 
-  // Durchschnitt Box
-  getBoxAverage(box) {
-    const results = this.boxResults[box];
-
-    if (!results.length) return 0;
-
-    return results.reduce((a, b) => a + b, 0) / results.length;
-  }
-
-  // Gesamtdurchschnitt
-  getOverallAverage() {
-    const allCuts = [
+  getAllCuts() {
+    return [
       ...this.boxResults.box1,
-      ...this.boxResults.box2,
-      ...this.boxResults.box3
+      ...this.boxResults.box2
     ];
+  }
+
+  getRightCutPercentage() {
+    const allCuts = this.getAllCuts();
 
     if (!allCuts.length) return 0;
 
-    return allCuts.reduce((a, b) => a + b, 0) / allCuts.length;
+    const rightCuts = allCuts.filter((cut) =>
+      this.isPerfectCut(cut)
+    ).length;
+
+    return (rightCuts / allCuts.length) * 100;
   }
 
-  // Ending Logik
+  getWrongCutPercentage() {
+    const allCuts = this.getAllCuts();
+
+    if (!allCuts.length) return 0;
+
+    const wrongCuts = allCuts.filter((cut) =>
+      !this.isPerfectCut(cut)
+    ).length;
+
+    return (wrongCuts / allCuts.length) * 100;
+  }
+
+  getAllChoices() {
+    return [
+      ...this.fishChoices.box1,
+      ...this.fishChoices.box2,
+      ...this.parasiteChoices.box1,
+      ...this.parasiteChoices.box2
+    ];
+  }
+
+  getNegativeSelfTalkPercentage() {
+    const allChoices = this.getAllChoices();
+
+    if (!allChoices.length) return 0;
+
+    const negativeChoices = [
+      "remember_her",
+      "she_exists",
+      "dontcare",
+      "wiedergutmachen",
+      "pressure",
+      "ignored"
+    ];
+
+    const negativeCount = allChoices.filter((choiceId) =>
+      negativeChoices.includes(choiceId)
+    ).length;
+
+    return (negativeCount / allChoices.length) * 100;
+  }
+
   getEnding() {
-    const perfectBoxes =
-      (this.isPerfectBox("box1") ? 1 : 0) +
-      (this.isPerfectBox("box2") ? 1 : 0) +
-      (this.isPerfectBox("box3") ? 1 : 0);
+    const rightPercent = this.getRightCutPercentage();
+    const wrongPercent = this.getWrongCutPercentage();
+    const negativePercent = this.getNegativeSelfTalkPercentage();
 
-    const parasiteCount = Object.values(this.parasiteInteractions)
-      .filter(Boolean).length;
-
-    if (perfectBoxes === 3 && parasiteCount === 0) {
-      return "perfectEnding";
+    if (wrongPercent > 51 && negativePercent > 31) {
+      return "ending1";
     }
 
-    if (perfectBoxes >= 2 && parasiteCount <= 1) {
-      return "goodEnding";
+    if (wrongPercent > 51 && negativePercent <= 31) {
+      return "ending2";
     }
 
-    if (parasiteCount >= 2) {
-      return "parasiteEnding";
+    if (rightPercent > 51 && negativePercent > 31) {
+      return "ending3";
     }
 
-    return "badEnding";
+    if (rightPercent > 51 && negativePercent <= 31) {
+      return "ending4";
+    }
+
+    return "endingNeutral";
+  }
+
+  getEndingStats() {
+    return {
+      rightPercent: this.getRightCutPercentage(),
+      wrongPercent: this.getWrongCutPercentage(),
+      negativePercent: this.getNegativeSelfTalkPercentage(),
+      ending: this.getEnding()
+    };
   }
 }
 

@@ -23,7 +23,7 @@ export default class Menu extends Phaser.Scene {
     this.eye.setScale(width < 1200 ? 0.28 : 0.4);
     this.maxEyeDistance = width < 1200 ? 28 : 40;
 
-    const menuX = width < 1200 ? width * 0.16 : width * 0.1;
+    const menuX = width < 1200 ? width * 0.16 : width * 0.12;
     const titleY = height < 750 ? height * 0.14 : height * 0.1;
     const startY = height * 0.5;
     const creditsY = height * 0.62;
