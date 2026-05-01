@@ -491,11 +491,10 @@ export default class Shop extends Phaser.Scene {
   }
 
   startFinalPath() {
-    const ending = gameState.getEnding();
-    const finalDialogue = box2Data.finalDialogues[ending];
+  const ending = gameState.getEnding();
 
-    this.dialogueManager.startDialogue(finalDialogue, () => {
-      console.log("GAME OVER / ENDING REACHED");
-    });
-  }
+  this.scene.start("Ending", {
+    ending: ending
+  });
+}
 }

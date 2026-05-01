@@ -103,8 +103,7 @@ class GameState {
       "she_exists",
       "dontcare",
       "wiedergutmachen",
-      "pressure",
-      "ignored"
+      "pressure"
     ];
 
     const negativeCount = allChoices.filter((choiceId) =>
