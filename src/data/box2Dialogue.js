@@ -55,6 +55,28 @@ export const box2Data = {
     }
   ],
 
+preEndingDialogue: {
+  ending1: [
+    { text: "Das war alles für heute." },
+    { text: "Endign 1 text hier..." }
+  ],
+
+  ending2: [
+    { text: "Das war alles für heute." },
+    { text: "2" }
+  ],
+
+  ending3: [
+    { text: "Das war alles für heute." },
+    { text: "3." }
+  ],
+
+  ending4: [
+    { text: "Das war alles für heute." },
+    { text: "4" }
+  ]
+},
+
 finalDialogues: {
   ending1: [
     { text: "Du hast viele Fehler gemacht." },
