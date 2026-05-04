@@ -18,10 +18,9 @@ export default class DialogueManager {
     this.dialogueBox = this.scene.add.rectangle(
       width / 2,
       height / 1.3,
-      width * 0.7,
-      140,
+      width * 0.8,
+      160,
       0x000000,
-      0.8
     ).setDepth(500);
 
     this.dialogueText = this.scene.add.text(
@@ -39,12 +38,12 @@ export default class DialogueManager {
       .setDepth(501);
 
     this.continueBtn = this.scene.add.text(
-      width / 1.25,
+      width / 1.3,
       height / 1.3,
       "...",
       {
         fontSize: "20px",
-        backgroundColor: "#333",
+        backgroundColor: "#202020",
         color: "#fff",
         padding: { x: 20, y: 10 }
       }

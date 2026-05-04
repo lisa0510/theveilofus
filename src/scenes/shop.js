@@ -13,12 +13,8 @@ export default class Shop extends Phaser.Scene {
   }
 
   preload() {
-    this.load.image("shop_bg", "assets/Fish02/Hintergrund.png");
-    this.load.image("shop_bg2", "assets/Fish02/Vorderhintergrund.png");
-    this.load.image("cutting", "assets/Fish/Cuttingboard.png");
+    this.load.image("shop_bg", "assets/Fish03/TalkingScreen.png");
     this.load.image("customer", "assets/Fish02/TaucherBoxOffen.png");
-    this.load.image("tisch", "assets/Fish/Tisch.png");
-    this.load.image("knive", "assets/Fish/knive.png");
     this.load.image("fish", "assets/Fish02/Fisch.png");
     this.load.image("board", "assets/Fish02/Schnittbrett.png");
     this.load.image("parasite", "assets/Fish02/parasite.png");
@@ -29,13 +25,7 @@ export default class Shop extends Phaser.Scene {
     const { width, height } = this.scale;
 
     this.add.image(width / 2, height / 2, "shop_bg").setDisplaySize(width, height);
-    this.add.image(width / 2, height / 2, "shop_bg2").setDisplaySize(width, height);
-
-    this.add.image(width / 2, height / 1, "tisch").setScale(1.2);
-    this.add.image(width / 2, height / 1.1, "cutting").setScale(0.7);
-    this.add.image(width / 1.5, height / 1.1, "knive").setScale(0.15);
-
-    this.coworker = this.add.image(width / 2, height / 1.8, "customer").setScale(0.6);
+    this.coworker = this.add.image(width / 2, height / 1.8, "customer").setScale(0.4);
 
     this.dialogueManager = new DialogueManager(this);
     this.boxManager = new BoxManager(this);
@@ -111,8 +101,8 @@ export default class Shop extends Phaser.Scene {
       .setDepth(101)
       .setScale(0.7);
 
-    this.spawnFish(false);
-    this.startFishDialogue();
+    this.spawnFish(true);
+    this.enableLineClick();
   }
 
   spawnFish(showLine = true) {
@@ -135,32 +125,6 @@ export default class Shop extends Phaser.Scene {
     }
   }
 
-  startFishDialogue() {
-    const node = this.currentBox.fishDialogue[0];
-
-    this.dialogueManager.startDialogue(
-      [{ text: node.text }],
-      () => {
-        this.showChoices(node.choices, (choice) => {
-          gameState.saveFishChoice(this.currentBoxId, choice.id);
-
-          const startCutting = () => {
-            this.createMovingCutLine();
-            this.enableLineClick();
-          };
-
-          if (choice.nextText) {
-            this.dialogueManager.startDialogue(
-              [{ text: choice.nextText }],
-              startCutting
-            );
-          } else {
-            startCutting();
-          }
-        });
-      }
-    );
-  }
 
   createMovingCutLine() {
     if (!this.fish) return;
@@ -385,7 +349,7 @@ export default class Shop extends Phaser.Scene {
       "parasite"
     )
       .setDepth(400)
-      .setScale(3.5);
+      .setScale(1.5);
 
     const parasiteIntro = this.currentBox.parasiteDialogue[0];
     const parasiteNode = this.currentBox.parasiteDialogue[1];
@@ -480,7 +444,7 @@ export default class Shop extends Phaser.Scene {
       height / 1.8,
       "customer"
     )
-      .setScale(0.6)
+      .setScale(0.4)
       .setDepth(50);
 
     if (this.currentBoxId === "box1") {

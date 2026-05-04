@@ -7,12 +7,8 @@ export default class Tutorial extends Phaser.Scene {
   }
 
   preload() {
-    this.load.image("shop_bg", "assets/Fish02/Hintergrund.png");
-    this.load.image("shop_bg2", "assets/Fish02/Vorderhintergrund.png");
-    this.load.image("cutting", "assets/Fish/Cuttingboard.png");
+    this.load.image("shop_bg", "assets/Fish03/TalkingScreen.png");
     this.load.image("customer", "assets/Fish02/TaucherBoxOffen.png");
-    this.load.image("tisch", "assets/Fish/Tisch.png");
-    this.load.image("knive", "assets/Fish/knive.png");
     this.load.image("fish", "assets/Fish02/Fisch.png");
     this.load.image("board", "assets/Fish02/Schnittbrett.png");
   }
@@ -24,25 +20,11 @@ export default class Tutorial extends Phaser.Scene {
       .setDisplaySize(width, height)
       .setDepth(-10);
 
-    this.add.image(width / 2, height / 2, "shop_bg2")
-      .setDisplaySize(width, height)
-      .setDepth(-5);
-
-    this.add.image(width / 2, height / 1, "tisch")
-      .setScale(1.2)
-      .setDepth(-1);
-
-    this.add.image(width / 2, height / 1.1, "cutting")
-      .setScale(0.7);
-
-    this.add.image(width / 1.5, height / 1.1, "knive")
-      .setScale(0.15);
-
     this.coworker = this.add.image(
       width / 2,
       height / 1.8,
       "customer"
-    ).setScale(0.6);
+    ).setScale(0.4);
 
     this.dialogueIndex = 0;
     this.cuts = [];
@@ -67,10 +49,10 @@ export default class Tutorial extends Phaser.Scene {
       height / 1.3,
       "",
       {
-        fontSize: "22px",
+        fontSize: "25px",
         color: "#ffffff",
-        backgroundColor: "#000000aa",
-        padding: { x: 20, y: 15 },
+        backgroundColor: "#000000",
+        padding: { x: 40, y: 25 },
         align: "center",
         wordWrap: { width: width * 0.6 }
       }
@@ -101,75 +83,31 @@ export default class Tutorial extends Phaser.Scene {
   }
 
   startTutorialCutting() {
-    const { width, height } = this.scale;
+  const { width, height } = this.scale;
 
-    this.overlay = this.add.rectangle(
-      width / 2,
-      height / 2,
-      width,
-      height,
-      0x000000,
-      0.7
-    ).setDepth(100);
+  this.overlay = this.add.rectangle(
+    width / 2,
+    height / 2,
+    width,
+    height,
+    0x000000,
+    0.8
+  ).setDepth(100);
 
-    this.boardImg = this.add.image(
-      width / 2,
-      height / 2,
-      "board"
-    )
-      .setDepth(101)
-      .setScale(0.7);
+  this.boardImg = this.add.image(
+    width / 2,
+    height / 2,
+    "board"
+  )
+    .setDepth(101)
+    .setScale(0.7);
 
-    this.spawnFish();
-    this.startFishDialogue();
-  }
+  this.spawnFish();
 
-  startFishDialogue() {
-    const { width, height } = this.scale;
-
-    this.fishDialogues = dialogues.tutorial.fishIntro;
-    this.fishDialogueIndex = 0;
-
-    this.fishText = this.add.text(
-      width / 2,
-      height / 1.3,
-      "",
-      {
-        fontSize: "20px",
-        color: "#ffffff",
-        backgroundColor: "#000000aa",
-        padding: { x: 20, y: 10 },
-        align: "center",
-        wordWrap: { width: width * 0.5 }
-      }
-    )
-      .setOrigin(0.5)
-      .setDepth(150);
-
-    this.input.on("pointerdown", this.handleProgressFishDialogue, this);
-    this.displayNextFishLine();
-  }
-
-  handleProgressFishDialogue() {
-    this.displayNextFishLine();
-  }
-
-  displayNextFishLine() {
-    if (this.fishDialogueIndex < this.fishDialogues.length) {
-      this.fishText.setText(
-        this.fishDialogues[this.fishDialogueIndex].text
-      );
-
-      this.fishDialogueIndex++;
-    } else {
-      this.input.off("pointerdown", this.handleProgressFishDialogue, this);
-      this.fishText.destroy();
-
-      this.time.delayedCall(150, () => {
-        this.enableLineClick();
-      });
-    }
-  }
+  this.time.delayedCall(150, () => {
+    this.enableLineClick();
+  });
+}
 
   spawnFish() {
     const { width, height } = this.scale;
@@ -355,12 +293,12 @@ export default class Tutorial extends Phaser.Scene {
       this.scale.height / 1.3,
       finalMessage,
       {
-        fontSize: "20px",
+        fontSize: "25px",
         color: "#ffffff",
-        backgroundColor: "#000000aa",
-        padding: { x: 20, y: 15 },
+        backgroundColor: "#000000",
+        padding: { x: 40, y: 25 },
         align: "center",
-        wordWrap: { width: this.scale.width * 0.7 }
+        wordWrap: { width: this.scale.width * 0.6 }
       }
     )
       .setOrigin(0.5)

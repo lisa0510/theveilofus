@@ -5,24 +5,6 @@ export const box2Data = {
     }
   ],
 
-  fishDialogue: [
-    {
-      text: "Du bist noch hier...Was wohl der Wal dazu meint?",
-      choices: [
-        {
-          id: "stay_focused",
-          text: "Ich bin hier um zu arbeiten.",
-          nextText: "Oh...Ich dachte schon du würdest dich von mir ablenken lassen..."
-        },
-        {
-          id: "feel_watched",
-          text: "Ich fühle mich beobachtet.",
-          nextText: "Vielleicht wirst du das..."
-        }
-      ]
-    }
-  ],
-
   successDialogue: [
     {
       text: "Lass mich das zu den anderen Wissenschaftlern bringen."

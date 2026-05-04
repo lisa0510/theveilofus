@@ -5,26 +5,6 @@ export const box1Data = {
     }
   ],
 
-  fishDialogue: [
-    {
-      text: "Zum Glück ist SIE nicht hier.",
-      choices: [
-        {
-          id: "remember_her",
-          text: "Ich hätte SIE fast vergessen.",
-          nextText:
-            "....Oh. Tut mir leid. Ich hätte dich nicht erinnern sollen."
-        },
-        {
-          id: "she_exists",
-          text: "Stimmt. SIE gibt es noch.",
-          nextText:
-            "....Oh. Tut mir leid. Ignorier mein Geblubber."
-        }
-      ]
-    }
-  ],
-
   successDialogue: [
     { text: "Danke" },
     { text: "Box 2 wartet bereits." }
