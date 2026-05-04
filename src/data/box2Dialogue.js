@@ -1,37 +1,37 @@
 export const box2Data = {
   introDialogue: [
     {
-      text: "Hallo Dr, hier ist die zweite Box!"
+      text: "Assistent: Hier ist deine zweite Box!"
     }
   ],
 
   successDialogue: [
     {
-      text: "Lass mich das zu den anderen Wissenschaftlern bringen."
+      text: "Assistent: Ich sehe es schon heute gibt es ein Festmahl für uns alle! Die von der Küche werden eine Menge zu tun haben."
     },
   ],
 
   parasiteDialogue: [
     {
-      text: "Schon wieder kein perfektes Ergebnis."
+      text: "Ich kann es nicht glauben wie viele Fehler du dir getraust zu machen, wärend die anderen darauf warten, dass wir gute Arbeit leisten."
     },
     {
-      text: "Mich zu enttäuschen ist eine Sache, aber jetzt leidet dein ganzes Team unter dir.",
+      text: "Assistent: Mich kann es nicht glauben wie viele Fehler du dir getraust zu machen, wärend die anderen darauf warten, dass wir gute Arbeit leisten.",
       choices: [
         {
           id: "pressure",
-          text: "Menschen machen Fehler",
-          nextText: "Menschen ohne Ziele im Leben, machen Fehler. Ich dachte du bist ein Mensch mit Vision."
+          text: "Ich gebe mein bestes",
+          nextText: "Dein Bestes ist nicht gut genug. Menschen verhungern, du fauler Sack, gibt dir Mühe!"
         },
         {
           id: "wiedergutmachen",
-          text: "Wie kann ich das wieder gut machen?",
-          nextText: "Wenn du aufhörst so faul zu sein und jede Sekunde übst... schaffst du es vielleicht ein akzeptables Level zu errreichen."
+          text: "Was soll ich denn machen?",
+          nextText: "Einen verdammten Knopf drücken, ist das so schwer? Du musst ja sonst nichts machen."
         }
       ],
       ignoreDialogue: [
         {
-          text: "Mich zu ignorieren löst nicht deine Probleme."
+          text: "Assistent: Mich zu ignorieren löst nicht deine Probleme."
         }
       ]
     }
@@ -61,27 +61,22 @@ preEndingDialogue: {
 
 finalDialogues: {
   ending1: [
-    { text: "Du hast viele Fehler gemacht." },
-    { text: "Und jedes Mal hast du dich selbst weiter nach unten gezogen." },
-    { text: "Die Station wird still." }
+    { text: "Hey ist alles okay? Du siehst so bleich aus, du solltest dich für heute ausruhen." },
+    { text: "Ich weiss, nicht viele deiner Fische konnten wir für den Verzehr behalten, aber mach dir nichts draus.  Dann muss ich halt wieder früher in die Säure, das gehört nun mal zu unserem jetzigen Leben." }
   ],
 
   ending2: [
-    { text: "Die Ergebnisse waren fehlerhaft." },
-    { text: "Aber du hast dich nicht vollständig gegen dich selbst gewendet." },
-    { text: "Vielleicht bleibt etwas von dir übrig." }
+    { text: "Unglaublich, du hast du viele Fische für uns als Nahrung behalten können! Team MoKla, hat es wieder super hinbekommen!" },
+    { text: "Keine Sorge, ich erwarte nicht dass dies jetzt zur Normalität wird haha " }
   ],
 
   ending3: [
-    { text: "Deine Schnitte waren präzise." },
-    { text: "Doch in deinem Kopf warst du grausamer zu dir als nötig." },
-    { text: "Perfektion hat ihren Preis." }
+    { text: "Von all den Menschen die es geschafft haben sich unter Wasser zu retten, musste ich mit der unnützen Person in ein Team gesteckt werden." }
   ],
 
   ending4: [
-    { text: "Die Proben wurden sauber vorbereitet." },
-    { text: "Du bist ruhig geblieben." },
-    { text: "Für einen Moment wirkt die Tiefe weniger feindlich." }
+    { text: "Die Leistung dieses Mal war in Ordnung, besser sogar als letztes Mal. Denk jedoch nicht, dass dies heisst dass du dich nicht noch weiter anstrengen musst." },
+    { text: "Ich erwarte, dass du eines Tages Perfektion erreicht verstanden?" }
   ],
 
   endingNeutral: [

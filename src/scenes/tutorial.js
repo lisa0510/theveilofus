@@ -24,7 +24,7 @@ export default class Tutorial extends Phaser.Scene {
       width / 2,
       height / 1.8,
       "customer"
-    ).setScale(0.4);
+    ).setScale(0.5);
 
     this.dialogueIndex = 0;
     this.cuts = [];

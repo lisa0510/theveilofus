@@ -6,31 +6,31 @@ export const box1Data = {
   ],
 
   successDialogue: [
-    { text: "Danke" },
-    { text: "Box 2 wartet bereits." }
+    { text: "Assistent: Perfekt! Wenn das so weiter geht, ist unser Lager im Hand um drehen gefüllt, voller leckeren Fisch." },
+    { text: "Assistent: Hier ist deine zweite Box!" }
   ],
 
   parasiteDialogue: [
     {
-      text: "Hörst du das, es war ein enttäuschendes Resultat. Habe ich dich nicht besser gelernt?"
+      text: "Klara: Macht es dir spass zu zusehen, wie die anderen Taucherinnen und ich unser Leben draussen riskieren oder wieso bedienst du den Laser nicht korrekt?"
     },
     {
-      text: "Hörst du das, es war ein enttäuschendes Resultat. Habe ich dich nicht besser gelernt?",
+      text: "Klara: Macht es dir spass zu zusehen, wie die anderen Taucherinnen und ich unser Leben draussen riskieren oder wieso bedienst du den Laser nicht korrekt?",
       choices: [
         {
           id: "learned",
-          text: "Ich habe mein Bestes gegeben.",
-          nextText: "Sicher? Ohne mich schaffst du es nicht Meister deiner Fähigkeit zu werden, dass wünscht du dir doch so sehr."
+          text: "Ich bin halt noch nicht geübt..",
+          nextText: "Assistent: Wie dumm kannst du sein? Es sind jetzt schon 7 Monate her, seit wir hier angekommen sind und du hast immer noch nicht gelernt, deinen Job richtig zu machen."
         },
         {
           id: "dontcare",
-          text: "Lass mich in Ruhe!",
-          nextText: "Nur Personen mit Stamina, schaffen es zur Meisterschaft. Dir fehlt die Willenskraft solch eine Person zu sein."
+          text: "Assistent würde nie so etwas sagen...",
+          nextText: "Assistent: Sagen nicht, aber denken schon. Wenn sie nicht gezwungen wäre mit dir in einer Gruppe zu sein, hätte sie dich schon lange für jemand bessern verlassen."
         }
       ],
 
       ignoreDialogue: [
-        { text: "Na gut, dann Antworte halt nicht.Doch vergiss nicht, du brauchst mich um Perfektion zu erlangen!" },
+        { text: "Na gut, dann Antworte halt nicht..." },
       ]
     }
   ]

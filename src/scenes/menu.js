@@ -53,7 +53,7 @@ export default class Menu extends Phaser.Scene {
       .setInteractive({ useHandCursor: true });
 
     startButton.on("pointerover", () => {
-      startButton.setStyle({ fill: "#ff0" });
+      startButton.setStyle({ fill: "rgb(0, 4, 255)" });
     });
 
     startButton.on("pointerout", () => {
@@ -78,7 +78,7 @@ export default class Menu extends Phaser.Scene {
       .setInteractive({ useHandCursor: true });
 
     creditsButton.on("pointerover", () => {
-      creditsButton.setStyle({ fill: "#ff0" });
+      creditsButton.setStyle({ fill: "rgb(0, 4, 255)" });
     });
 
     creditsButton.on("pointerout", () => {

@@ -25,7 +25,7 @@ export default class Shop extends Phaser.Scene {
     const { width, height } = this.scale;
 
     this.add.image(width / 2, height / 2, "shop_bg").setDisplaySize(width, height);
-    this.coworker = this.add.image(width / 2, height / 1.8, "customer").setScale(0.4);
+    this.coworker = this.add.image(width / 2, height / 1.8, "customer").setScale(0.5);
 
     this.dialogueManager = new DialogueManager(this);
     this.boxManager = new BoxManager(this);
@@ -444,7 +444,7 @@ export default class Shop extends Phaser.Scene {
       height / 1.8,
       "customer"
     )
-      .setScale(0.4)
+      .setScale(0.5)
       .setDepth(50);
 
     if (this.currentBoxId === "box1") {
