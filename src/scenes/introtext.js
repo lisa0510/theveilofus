@@ -10,8 +10,8 @@ export default class Intro extends Phaser.Scene {
 
     const isSmallScreen = width < 1200 || height < 750;
 
-    const headerSize = isSmallScreen ? "18px" : "25px";
-    const bodySize = isSmallScreen ? "16px" : "25px";
+    const headerSize = isSmallScreen ? "20px" : "25px";
+    const bodySize = isSmallScreen ? "18px" : "25px";
     const hintSize = isSmallScreen ? "15px" : "20px";
 
     const textWrapWidth = isSmallScreen ? width * 0.86 : width * 0.68;
@@ -34,24 +34,16 @@ export default class Intro extends Phaser.Scene {
         fontSize: headerSize,
         color: "#3cff9b",
         align: "center",
+        fontSize: headerSize,
         fontFamily: "Courier New",
         wordWrap: { width: width * 0.9 }
       }
     ).setOrigin(0.5);
 
-    const introText = `Irgendwann in der Zukunft werden der Grossteil der Erdbevölkerung sowie weite Teile des Landes von Wasser überflutet sein.
+    const introText = `Als die Gewässer übersäuerten und die Erdoberfläche in der Hitze verglühte, suchte die Menschheit Zuflucht in der Tiefe. Doch das Überleben war schwierig, ausser Meerestiere gab es kaum Nahrung, und deren biochemische Anpassungen an die Umgebung machten sie für den Menschen giftig.
 
-Der Menschheit bleibt keine andere Wahl, als unter den Wellen und auf provisorischen Inseln Zuflucht zu suchen.
-
-Du bist Doktor der Meeresbiologie und arbeitest in einer Unterwasser-Forschungsstation in der Adria.
-
-Der Zweck der Station ist die kontinuierliche Untersuchung der dort lebenden Meeresarten, von denen sich die meisten glücklicherweise bereits vor Jahrzehnten an ihre toxische Umwelt angepasst haben.
-
-Deine Aufgabe besteht in der Vorbereitung dieser Proben gemeinsam mit deinem Assistenten für die Forschung.
-
-Du gehörst zu weniger als hundert Menschen, die direkt mit diesen Tieren arbeiten dürfen – stets mit äusserster Vorsicht.
-
-Doch selbst mit der richtigen Ausrüstung gab es kein Entkommen vor der Kontamination, die diese armen Kreaturen erdulden mussten.`;
+Du gehörst zu einer kleinen Gruppe von  Spezialisten, die sich mit der Aufbereitung dieser Organismen für den Verzehr beschäftigen. Deine Aufgabe ist es, mithilfe präziser Laserschnitte die giftigen von den essbaren Bestandteilen zu trennen.
+Jeder Fehlschnitt bedeutet weniger Nahrung für die bereits hungernde Bevölkerung.`;
 
     const mainText = this.add.text(
       width / 2,
@@ -60,7 +52,7 @@ Doch selbst mit der richtigen Ausrüstung gab es kein Entkommen vor der Kontamin
       {
         fontSize: bodySize,
         color: "#b7ffd8",
-        align: "left",
+        align: "center",
         fontFamily: "Courier New",
         wordWrap: { width: textWrapWidth },
         lineSpacing

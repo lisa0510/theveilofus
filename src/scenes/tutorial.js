@@ -28,7 +28,7 @@ export default class Tutorial extends Phaser.Scene {
 
     this.dialogueIndex = 0;
     this.cuts = [];
-    this.targetCM = 50;
+    this.targetCM = 30; // 🔥 NEW TARGET
     this.totalFish = 4;
     this.currentFish = 0;
 
@@ -73,7 +73,6 @@ export default class Tutorial extends Phaser.Scene {
       this.dialogueText.setText(
         this.currentDialogues[this.dialogueIndex].text
       );
-
       this.dialogueIndex++;
     } else {
       this.input.off("pointerdown", this.handleProgressDialogue, this);
@@ -83,31 +82,54 @@ export default class Tutorial extends Phaser.Scene {
   }
 
   startTutorialCutting() {
-  const { width, height } = this.scale;
+    const { width, height } = this.scale;
 
-  this.overlay = this.add.rectangle(
-    width / 2,
-    height / 2,
-    width,
-    height,
-    0x000000,
-    0.8
-  ).setDepth(100);
+    this.overlay = this.add.rectangle(
+      width / 2,
+      height / 2,
+      width,
+      height,
+      0x000000,
+      0.8
+    ).setDepth(100);
 
-  this.boardImg = this.add.image(
-    width / 2,
-    height / 2,
-    "board"
-  )
-    .setDepth(101)
-    .setScale(0.7);
+    this.boardImg = this.add.image(
+      width / 2,
+      height / 2,
+      "board"
+    )
+      .setDepth(101)
+      .setScale(0.7);
 
-  this.spawnFish();
+    // 🔥 INFO TEXT
+    this.infoText = this.add.text(
+      width / 2,
+      height * 0.2,
+      "Ziel: Schneide bei 30%",
+      {
+        fontSize: "24px",
+        color: "#ffffff",
+        backgroundColor: "#000000aa",
+        padding: { x: 20, y: 10 },
+        align: "center"
+      }
+    )
+      .setOrigin(0.5)
+      .setDepth(150);
 
-  this.time.delayedCall(150, () => {
-    this.enableLineClick();
-  });
-}
+    this.infoText.setAlpha(0);
+    this.tweens.add({
+      targets: this.infoText,
+      alpha: 1,
+      duration: 400
+    });
+
+    this.spawnFish();
+
+    this.time.delayedCall(150, () => {
+      this.enableLineClick();
+    });
+  }
 
   spawnFish() {
     const { width, height } = this.scale;
@@ -194,70 +216,64 @@ export default class Tutorial extends Phaser.Scene {
   }
 
   animateSlice(localX, percent) {
-  const {
-    x,
-    y,
-    displayWidth: w,
-    displayHeight: h
-  } = this.fish;
+    const { x, y, displayWidth: w, displayHeight: h } = this.fish;
 
-  const leftHalf = this.add.image(x, y, "fish")
-    .setDisplaySize(w, h)
-    .setCrop(0, 0, localX, h)
-    .setDepth(103);
+    const leftHalf = this.add.image(x, y, "fish")
+      .setDisplaySize(w, h)
+      .setCrop(0, 0, localX, h)
+      .setDepth(103);
 
-  const rightHalf = this.add.image(x, y, "fish")
-    .setDisplaySize(w, h)
-    .setCrop(localX, 0, w - localX, h)
-    .setDepth(103);
+    const rightHalf = this.add.image(x, y, "fish")
+      .setDisplaySize(w, h)
+      .setCrop(localX, 0, w - localX, h)
+      .setDepth(103);
 
-  this.fish.destroy();
+    this.fish.destroy();
 
-  const diff = Math.abs(percent - 50);
+    const diff = Math.abs(percent - 30); // 🔥 TARGET 30
 
-  let feedbackColor = "#ff4444";
-
-  if (diff <= 2) {
-    feedbackColor = "#2ecc71";
-  }
-
-  const percentText = this.add.text(
-    x,
-    y - 250,
-    `${percent}%`,
-    {
-      fontSize: "50px",
-      color: feedbackColor,
-      fontStyle: "bold",
-      stroke: "#000000",
-      strokeThickness: 5
+    let feedbackColor = "#ff4444";
+    if (diff <= 2) {
+      feedbackColor = "#2ecc71";
     }
-  )
-    .setOrigin(0.5)
-    .setDepth(300);
 
-  this.tweens.add({
-    targets: leftHalf,
-    x: x - 250,
-    alpha: 0,
-    duration: 350
-  });
+    const percentText = this.add.text(
+      x,
+      y - 250,
+      `${percent}%`,
+      {
+        fontSize: "50px",
+        color: feedbackColor,
+        fontStyle: "bold",
+        stroke: "#000000",
+        strokeThickness: 5
+      }
+    )
+      .setOrigin(0.5)
+      .setDepth(300);
 
-  this.tweens.add({
-    targets: rightHalf,
-    x: x + 250,
-    alpha: 0,
-    duration: 350
-  });
+    this.tweens.add({
+      targets: leftHalf,
+      x: x - 250,
+      alpha: 0,
+      duration: 350
+    });
 
-  this.time.delayedCall(700, () => {
-    leftHalf.destroy();
-    rightHalf.destroy();
-    percentText.destroy();
+    this.tweens.add({
+      targets: rightHalf,
+      x: x + 250,
+      alpha: 0,
+      duration: 350
+    });
 
-    this.nextFish();
-  });
-}
+    this.time.delayedCall(700, () => {
+      leftHalf.destroy();
+      rightHalf.destroy();
+      percentText.destroy();
+
+      this.nextFish();
+    });
+  }
 
   nextFish() {
     this.currentFish++;
@@ -277,6 +293,7 @@ export default class Tutorial extends Phaser.Scene {
     if (this.overlay) this.overlay.destroy();
     if (this.boardImg) this.boardImg.destroy();
     if (this.cutLine) this.cutLine.destroy();
+    if (this.infoText) this.infoText.destroy(); // cleanup
 
     const averagePercent =
       this.cuts.reduce((a, b) => a + b, 0) / this.cuts.length;
@@ -308,5 +325,4 @@ export default class Tutorial extends Phaser.Scene {
       this.scene.start("Shop");
     });
   }
-  
 }

@@ -1,13 +1,13 @@
 export const box1Data = {
   introDialogue: [
-    {
-      text: "Da bin ich wieder Doktor.."
-    }
+      {text: "Assistent: Da bin ich wieder. Heute Morgen konnten wir genug Fisch fangen, um zwei Boxen zu füllen. Hier ist die erste Box.",},
+      { text:"Assistent: Hoffen wir, dass unsere Arbeit genauso gut wird, wie gestern. Sonst muss ich früher, als mir geheuer ist wieder in der Säure schwimmen gehen."}
+    
   ],
 
   successDialogue: [
-    { text: "Assistent: Perfekt! Wenn das so weiter geht, ist unser Lager im Hand um drehen gefüllt, voller leckeren Fisch." },
-    { text: "Assistent: Hier ist deine zweite Box!" }
+    { text: "Danke" },
+    { text: "Box 2 wartet bereits." }
   ],
 
   parasiteDialogue: [
