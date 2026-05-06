@@ -7,9 +7,9 @@ export default class Tutorial extends Phaser.Scene {
   }
 
   preload() {
-    this.load.image("shop_bg", "assets/Fish03/TalkingScreen.png");
+    this.load.image("shop_bg", "assets/Fish03/TalkingScreenBack.png");
     this.load.image("customer", "assets/Fish02/TaucherBoxOffen.png");
-    this.load.image("fish", "assets/Fish02/Fisch.png");
+    this.load.image("fish", "assets/Fish03/Fisch03.png");
     this.load.image("board", "assets/Fish02/Schnittbrett.png");
   }
 
