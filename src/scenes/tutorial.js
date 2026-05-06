@@ -8,6 +8,7 @@ export default class Tutorial extends Phaser.Scene {
 
   preload() {
     this.load.image("shop_bg", "assets/Fish03/TalkingScreenBack.png");
+    this.load.image("shop_laser", "assets/Fish03/TalkingScreenFront1.png");
     this.load.image("customer", "assets/Fish02/TaucherBoxOffen.png");
     this.load.image("fish", "assets/Fish03/Fisch03.png");
     this.load.image("board", "assets/Fish02/Schnittbrett.png");
@@ -15,20 +16,25 @@ export default class Tutorial extends Phaser.Scene {
 
   create() {
     const { width, height } = this.scale;
+    const bg = this.add.image(width / 2, height / 2, "shop_bg").setDepth(-12);
+    const scaleX = width / bg.width;
+    const scaleY = height / bg.height;
+    const scale = Math.max(scaleX, scaleY); 
+    bg.setScale(scale);
 
-    this.add.image(width / 2, height / 2, "shop_bg")
-      .setDisplaySize(width, height)
-      .setDepth(-10);
+    const bglaser = this.add.image(width / 2, height / 1.5, "shop_laser").setDepth(-10);
+    bglaser.setScale(1.2);
+   
 
     this.coworker = this.add.image(
       width / 2,
       height / 1.8,
       "customer"
-    ).setScale(0.5);
+    ).setScale(0.8).setDepth(-11);
 
     this.dialogueIndex = 0;
     this.cuts = [];
-    this.targetCM = 30; // 🔥 NEW TARGET
+    this.targetCM = 30;
     this.totalFish = 4;
     this.currentFish = 0;
 
@@ -46,12 +52,12 @@ export default class Tutorial extends Phaser.Scene {
 
     this.dialogueText = this.add.text(
       width / 2,
-      height / 1.3,
+      height / 1.2,
       "",
       {
         fontSize: "25px",
         color: "#ffffff",
-        backgroundColor: "#000000",
+        backgroundColor: "#000000cd",
         padding: { x: 40, y: 25 },
         align: "center",
         wordWrap: { width: width * 0.6 }

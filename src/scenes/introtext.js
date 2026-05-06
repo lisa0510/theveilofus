@@ -10,52 +10,87 @@ export default class Intro extends Phaser.Scene {
 
     const isSmallScreen = width < 1200 || height < 750;
 
-    const headerSize = isSmallScreen ? "20px" : "25px";
-    const bodySize = isSmallScreen ? "18px" : "25px";
-    const hintSize = isSmallScreen ? "15px" : "20px";
+    const headerSize = isSmallScreen ? "17px" : "24px";
+    const bodySize = isSmallScreen ? "15px" : "22px";
+    const hintSize = isSmallScreen ? "14px" : "18px";
 
-    const textWrapWidth = isSmallScreen ? width * 0.86 : width * 0.68;
-    const textY = isSmallScreen ? height * 0.52 : height * 0.5;
-    const lineSpacing = isSmallScreen ? 6 : 9;
+    const panelW = width * 0.8;
+    const panelH = height * 0.7;
+    const panelX = width / 2;
+    const panelY = height * 0.5;
 
-    this.add.rectangle(
-      width / 2,
-      height / 2,
-      width,
-      height,
-      0x03110c
-    );
+    this.add.rectangle(width / 2, height / 2, width, height, 0x111816);
+
+
+    // inner monitor
+    this.add.rectangle(panelX, panelY, panelW * 0.9, panelH * 0.75, 0x07130e, 0.95)
+      .setStrokeStyle(2, 0x3cff9b, 0.7);
+
+    // top bar
+    this.add.rectangle(panelX, panelY - panelH * 0.42, panelW * 0.9, 8, 0x3cff9b, 0.85);
 
     this.add.text(
-      width / 2,
-      height * 0.08,
-      "UNTERWASSER-FORSCHUNGSSTATION ADRIA // SYSTEMPROTOKOLL",
+      panelX,
+      panelY - panelH * 0.52,
+      "UNTERWASSER-FORSCHUNGSSTATION ADRIA-03 // SYSTEMPROTOKOLL",
       {
         fontSize: headerSize,
         color: "#3cff9b",
-        align: "center",
-        fontSize: headerSize,
         fontFamily: "Courier New",
-        wordWrap: { width: width * 0.9 }
+        align: "center",
+        wordWrap: { width: panelW * 0.9 }
       }
     ).setOrigin(0.5);
 
-    const introText = `Als die Gewässer übersäuerten und die Erdoberfläche in der Hitze verglühte, suchte die Menschheit Zuflucht in der Tiefe. Doch das Überleben war schwierig, ausser Meerestiere gab es kaum Nahrung, und deren biochemische Anpassungen an die Umgebung machten sie für den Menschen giftig.
+    // small status text
+    this.add.text(
+      width * 0.14,
+      height * 0.08,
+      "DEPTH: -420M\nO2: STABIL\nCOM: LOW SIGNAL",
+      {
+        fontSize: isSmallScreen ? "12px" : "15px",
+        color: "#70ffad",
+        fontFamily: "Courier New",
+        lineSpacing: 6
+      }
+    );
 
-Du gehörst zu einer kleinen Gruppe von  Spezialisten, die sich mit der Aufbereitung dieser Organismen für den Verzehr beschäftigen. Deine Aufgabe ist es, mithilfe präziser Laserschnitte die giftigen von den essbaren Bestandteilen zu trennen.
-Jeder Fehlschnitt bedeutet weniger Nahrung für die bereits hungernde Bevölkerung.`;
+    this.add.text(
+      width * 0.78,
+      height * 0.08,
+      "CREW ID: M.SCHWARZ\nSTATION: ADRIA-03\nDATE: 30.12.2126",
+      {
+        fontSize: isSmallScreen ? "12px" : "15px",
+        color: "#70ffad",
+        fontFamily: "Courier New",
+        lineSpacing: 6
+      }
+    );
+
+    for (let y = 0; y < height; y += 8) {
+      this.add.rectangle(width / 2, y, width, 1, 0x3cff9b, 0.035);
+    }
+
+    const introText = `Als die Sonne anfing, die Erdoberfläche zu verbrennen, befanden wir uns auf unserer Arbeitsstation in der Adria.
+
+Die Versäuerung der Ozeane war ein Nebeneffekt, der unser Überleben erschwerte. Die Organismen passten sich an ihr neues Umfeld an – doch für uns wurde Nahrung knapp.
+
+Wir mussten lernen, das Fischfleisch von den Kiemen und jenen Stellen zu trennen, die sich für Menschen als giftig erwiesen hatten.
+
+Mein Name ist Mona Schwarz. Ich bin eines der Crew-Mitglieder dieser Station und habe mich dazu entschlossen, die Zubereitung der Proben zu übernehmen.
+Jedoch weiss ich nicht wie lange meine Psyche diese Lebenssituation noch aushalten wird.`;
 
     const mainText = this.add.text(
-      width / 2,
-      textY,
+      panelX,
+      panelY,
       "",
       {
         fontSize: bodySize,
         color: "#b7ffd8",
-        align: "center",
         fontFamily: "Courier New",
-        wordWrap: { width: textWrapWidth },
-        lineSpacing
+        align: "left",
+        wordWrap: { width: panelW * 0.78 },
+        lineSpacing: isSmallScreen ? 6 : 10
       }
     ).setOrigin(0.5);
 
@@ -63,7 +98,7 @@ Jeder Fehlschnitt bedeutet weniger Nahrung für die bereits hungernde Bevölkeru
     let isFinished = false;
 
     const typeEvent = this.time.addEvent({
-      delay: isSmallScreen ? 10 : 22,
+      delay: isSmallScreen ? 8 : 18,
       loop: true,
       callback: () => {
         mainText.setText(introText.slice(0, index));
@@ -72,21 +107,19 @@ Jeder Fehlschnitt bedeutet weniger Nahrung für die bereits hungernde Bevölkeru
         if (index > introText.length) {
           typeEvent.remove(false);
           isFinished = true;
+          hintText.setText("[ PRESS ANY KEY OR CLICK TO START ]");
         }
       }
     });
 
     const hintText = this.add.text(
       width / 2,
-      height * 0.92,
-      isFinished
-        ? "[ PRESS ANY KEY OR CLICK TO START ]"
-        : "[ PRESS ANY KEY OR CLICK TO SKIP ]",
+      height * 0.91,
+      "[ PRESS ANY KEY OR CLICK TO SKIP ]",
       {
         fontSize: hintSize,
         color: "#3cff9b",
         fontFamily: "Courier New",
-        wordWrap: { width: width * 0.9 },
         align: "center"
       }
     ).setOrigin(0.5);
@@ -94,7 +127,7 @@ Jeder Fehlschnitt bedeutet weniger Nahrung für die bereits hungernde Bevölkeru
     this.tweens.add({
       targets: hintText,
       alpha: 0.35,
-      duration: 1600,
+      duration: 1400,
       yoyo: true,
       repeat: -1,
       ease: "Sine.InOut"
